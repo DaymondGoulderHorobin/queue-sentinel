@@ -4,7 +4,7 @@ import { DEMO_INCIDENTS } from '../src/shared/demoData';
 import { createIncidentMemoryStore } from '../src/server/services/incidentMemoryStore';
 
 describe('incident memory store', () => {
-  it('seeds and lists Sprint 2 demo incidents', async () => {
+  it('seeds and lists Sprint 3 demo incidents', async () => {
     const store = createIncidentMemoryStore();
     const result = await store.seedDemoIncidents();
     const incidents = await store.listIncidents();

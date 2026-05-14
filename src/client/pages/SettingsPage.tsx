@@ -1,3 +1,5 @@
+import type { ScoringPreviewResponse } from '../../shared/apiTypes';
+
 const settingsSections = [
   {
     title: 'Rule mapping',
@@ -23,8 +25,10 @@ interface SettingsPageProps {
   incidentCount: number;
   isMutating: boolean;
   onRefresh: () => void;
+  onRecomputeScoring: () => void;
   onResetDemo: () => void;
   onSeedDemo: () => void;
+  scoringPreview: ScoringPreviewResponse;
 }
 
 export const SettingsPage = ({
@@ -33,8 +37,10 @@ export const SettingsPage = ({
   incidentCount,
   isMutating,
   onRefresh,
+  onRecomputeScoring,
   onResetDemo,
   onSeedDemo,
+  scoringPreview,
 }: SettingsPageProps) => {
   return (
     <section className="page-stack" aria-labelledby="settings-title">
@@ -72,6 +78,33 @@ export const SettingsPage = ({
           </button>
           <button disabled={isMutating} onClick={onResetDemo} type="button">
             Reset demo
+          </button>
+        </div>
+      </article>
+
+      <article className="demo-panel">
+        <div>
+          <p className="eyebrow">Deterministic scoring controls</p>
+          <h3>Recompute demo clustering and priority scores</h3>
+          <p>
+            This uses synthetic Sprint 3 demo signals only. It does not ingest
+            Reddit data, call AI, notify anyone, or perform moderation actions.
+          </p>
+        </div>
+        <div className="demo-panel__meta">
+          <span>
+            Model <strong>{scoringPreview.modelVersion}</strong>
+          </span>
+          <span>
+            Signals <strong>{scoringPreview.signalsProcessed}</strong>
+          </span>
+          <span>
+            Clusters <strong>{scoringPreview.clustersFormed}</strong>
+          </span>
+        </div>
+        <div className="demo-actions">
+          <button disabled={isMutating} onClick={onRecomputeScoring} type="button">
+            {isMutating ? 'Recomputing...' : 'Recompute demo scoring'}
           </button>
         </div>
       </article>

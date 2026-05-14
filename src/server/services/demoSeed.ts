@@ -1,4 +1,4 @@
-import { DEMO_INCIDENTS } from '../../shared/demoData';
+import { SCORED_DEMO_INCIDENTS } from './incidentMaterializer';
 import type { IncidentStore } from './incidentStore';
 
 export const seedDemoQueue = async (
@@ -10,7 +10,7 @@ export const seedDemoQueue = async (
 
   return {
     result,
-    incidents: incidents.length > 0 ? [...incidents] : [...DEMO_INCIDENTS],
+    incidents: incidents.length > 0 ? [...incidents] : [...SCORED_DEMO_INCIDENTS],
   };
 };
 
