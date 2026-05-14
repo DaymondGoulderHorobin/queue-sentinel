@@ -1,6 +1,6 @@
 # PR Review Checklist
 
-Use this checklist when asking ChatGPT to review the Sprint 0 pull request.
+Use this checklist when asking ChatGPT to review Queue Sentinel pull requests.
 
 ## Required Context
 
@@ -11,16 +11,17 @@ Use this checklist when asking ChatGPT to review the Sprint 0 pull request.
 - Type-check output from `npm run type-check`.
 - Lint output from `npm run lint`.
 - Test output from `npm run test`.
-- Screenshot or concise description of the visible Queue Sentinel shell.
+- Screenshot or concise description of Dashboard, Incident workbench, and Case Card.
 - Any Devvit warnings or local playtest limitations.
 
 ## Acceptance Criteria
 
 - Repository scaffold includes Devvit config, source, docs, tests, and ignore files.
 - App shell runs through the documented Devvit workflow.
-- Dashboard displays Queue Sentinel branding, navigation, and placeholder cards.
-- At least three safe mock incidents are available and visible.
-- Case Card page includes user context, related items, rationale draft, and disabled actions.
+- Dashboard displays Queue Sentinel branding, navigation, queue pressure metrics, top incident, and priority distribution.
+- At least eight safe mock incidents are available and visible.
+- Incidents page supports search, filters, sorting, selection, selected preview, and empty state.
+- Case Card page follows the selected incident and includes context, signals, timeline, rationale draft, and disabled actions.
 - Server exposes a health route and mock incidents route.
 - `incidentStore` exists as the future Redis storage boundary.
 - README documents install, run, build, and test commands.

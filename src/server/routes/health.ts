@@ -8,7 +8,7 @@ healthRoute.get('/', (context) => {
   return context.json<HealthResponse>({
     status: 'ok',
     service: 'queue-sentinel',
-    sprint: 'sprint-0',
+    sprint: 'sprint-1',
     timestamp: new Date().toISOString(),
   });
 });

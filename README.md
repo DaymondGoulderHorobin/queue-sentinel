@@ -1,15 +1,15 @@
 # Queue Sentinel
 
-Queue Sentinel is a Reddit Devvit moderation workbench for noisy mod queues. Sprint 0 creates the foundation only: a Devvit Web scaffold, typed mock incident data, a responsive app shell, server route boundaries, storage and scoring seams, docs, and review checklists.
+Queue Sentinel is a Reddit Devvit moderation workbench for noisy mod queues. Sprint 1 builds on the Devvit Web foundation with a polished, mock-data-driven queue triage workbench.
 
-The eventual product will help moderators collapse duplicate reports into explainable incident cards, rank queue pressure, and keep all enforcement decisions human-in-the-loop. Sprint 0 does not perform real moderation actions.
+The eventual product will help moderators collapse duplicate reports into explainable incident cards, rank queue pressure, and keep all enforcement decisions human-in-the-loop. Sprint 1 still does not perform real moderation actions.
 
 ## Sprint Status
 
-- Sprint: `0 - Foundation and Scaffold`
-- Branch: `sprint-0-foundation-scaffold`
+- Sprint: `1 - Core Queue Workbench UI`
+- Branch: `sprint-1-core-workbench-ui`
 - Devvit pattern: Devvit Web with `src/client`, `src/server`, and `src/shared`
-- Data: safe mock incidents only
+- Data: safe mock incidents only, expanded for search/filter/sort demos
 - Moderation actions: disabled placeholders only
 
 ## Requirements
@@ -55,7 +55,7 @@ npm run lint
 npm run test
 ```
 
-Run all Sprint 0 quality gates:
+Run all quality gates:
 
 ```bash
 npm run check
@@ -68,16 +68,17 @@ npm run deploy
 npm run launch
 ```
 
-## Implemented in Sprint 0
+## Implemented
 
 - Devvit-compatible `devvit.json` and Vite build setup.
-- Responsive Queue Sentinel app shell with Dashboard, Incidents, Case Card, Metrics, and Settings views.
-- Three safe mock incidents with typed contracts.
+- Responsive Queue Sentinel workbench with Dashboard, Incidents, Case Card, Metrics, and Settings views.
+- Ten safe mock incidents with typed contracts, tags, signal labels, review guidance, and timeline events.
 - Hono server entry with `/api/health` and `/api/incidents` routes.
 - `incidentStore` boundary prepared for future Redis-backed data.
 - `priorityScoring` boundary with placeholder scoring behavior only.
-- Documentation for architecture, Sprint 0 notes, and PR review.
-- Smoke tests for mock data and placeholder scoring.
+- Search, filtering, sorting, selected incident preview, priority distribution, and mock metric aggregation.
+- Documentation for architecture, Sprint 0 notes, Sprint 1 notes, and PR review.
+- Smoke and helper tests for mock data, placeholder scoring, filtering, sorting, and metrics.
 
 ## Not Implemented Yet
 
@@ -95,7 +96,7 @@ src/
   client/   React app shell, components, pages, and CSS
   server/   Hono server routes, Devvit menu handler, service boundaries
   shared/   Shared constants, mock data, and TypeScript contracts
-tests/      Sprint 0 smoke tests
+tests/      Smoke and workbench helper tests
 docs/       Architecture, sprint notes, and PR review checklist
 ```
 

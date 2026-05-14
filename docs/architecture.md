@@ -8,13 +8,13 @@ Queue Sentinel uses the current Devvit Web split between client, server, and sha
 - `src/client` contains the React workbench shell rendered through `app.html`.
 - `src/server` contains a Hono server mounted through `@devvit/web/server`.
 - `src/shared` holds the incident contracts and safe demo data used by both sides.
-- `tests` provides Sprint 0 smoke coverage.
+- `tests` provides smoke and workbench helper coverage.
 
 ## Client
 
-The client is intentionally simple and responsive. `App.tsx` owns the active navigation tab and attempts to load `/api/incidents`. If the API is unavailable during a browser-only preview, the client falls back to local mock data.
+The client is responsive and mock-data-driven. `App.tsx` owns the active navigation tab, selected incident id, and attempts to load `/api/incidents`. If the API is unavailable during a browser-only preview, the client falls back to local mock data.
 
-The visible sections are Dashboard, Incidents, Case Card, Metrics, and Settings. All action controls in the Case Card are disabled because Sprint 0 must not provide real enforcement.
+The visible sections are Dashboard, Incidents, Case Card, Metrics, and Settings. The Incidents workbench supports local search, filters, sorting, selected preview, and Case Card handoff. All action controls in the Case Card are disabled because Sprint 1 must not provide real enforcement.
 
 ## Server
 
@@ -28,11 +28,11 @@ Future sprints can add Reddit triggers and internal API endpoints without changi
 
 ## Storage Boundary
 
-`incidentStore` is the storage boundary for future Redis implementation. Sprint 0 returns static demo incidents only. Redis calls should be introduced behind this interface so the UI and server routes stay stable.
+`incidentStore` is the storage boundary for future Redis implementation. Sprint 1 returns static demo incidents only. Redis calls should be introduced behind this interface so the UI and server routes stay stable.
 
 ## Scoring Boundary
 
-`priorityScoring` currently mirrors mock priority values. It exists to mark where deterministic scoring and explainable ranking should live later. Sprint 0 does not implement real clustering or prioritization.
+`priorityScoring` currently mirrors mock priority values. It exists to mark where deterministic scoring and explainable ranking should live later. Sprint 1 adds client-side ordering helpers for the mock workbench, but does not implement production clustering or prioritization.
 
 ## Future Moderator Actions
 
