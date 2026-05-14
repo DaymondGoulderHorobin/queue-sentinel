@@ -3,6 +3,7 @@ import type {
   IncidentStatus,
   IncidentTimelineEvent,
   QueueIncident,
+  ScoringModelVersion,
 } from './types';
 
 export type ApiSource = 'redis' | 'memory' | 'fallback';
@@ -65,7 +66,20 @@ export interface SeedDemoResponse extends ApiOkResponse {
 
 export interface HealthResponse extends ApiOkResponse {
   service: 'queue-sentinel';
-  sprint: 'sprint-2';
+  sprint: 'sprint-3';
   storeMode: ApiSource;
+  scoringModelVersion: ScoringModelVersion;
   timestamp: string;
 }
+
+export interface ScoringPreviewResponse extends ApiOkResponse {
+  source: ApiSource;
+  modelVersion: ScoringModelVersion;
+  signalsProcessed: number;
+  clustersFormed: number;
+  duplicateSignalsCollapsed: number;
+  averageScore: number;
+  incidents: QueueIncident[];
+}
+
+export type ScoringRecomputeResponse = ScoringPreviewResponse;

@@ -23,6 +23,10 @@ export const IncidentCard = ({
   onOpenCaseCard,
   onSelect,
 }: IncidentCardProps) => {
+  const topFactor = incident.priorityScore?.factors
+    .filter((factor) => factor.contribution > 0)
+    .sort((a, b) => b.contribution - a.contribution)[0];
+
   return (
     <article
       className={`incident-card ${isSelected ? 'incident-card--selected' : ''}`}
@@ -45,16 +49,16 @@ export const IncidentCard = ({
 
       <div className="metric-strip" aria-label={`${incident.title} metrics`}>
         <span>
-          <strong>{incident.reportCount}</strong>
-          reports
+          <strong>{incident.priorityScore?.score ?? '--'}</strong>
+          score
         </span>
         <span>
-          <strong>{incident.queueAgeMinutes}m</strong>
-          age
+          <strong>{incident.clusterSummary?.signalCount ?? '--'}</strong>
+          signals
         </span>
         <span>
-          <strong>{incident.relatedItemCount}</strong>
-          related
+          <strong>{incident.clusterSummary?.uniqueItemCount ?? '--'}</strong>
+          items
         </span>
       </div>
 
@@ -63,6 +67,11 @@ export const IncidentCard = ({
           {incident.signalStrength ?? 'tracked'} signal
         </SignalPill>
         <SignalPill>confidence {incident.confidenceLabel ?? 'medium'}</SignalPill>
+        {topFactor ? (
+          <SignalPill>
+            {topFactor.label} +{topFactor.contribution}
+          </SignalPill>
+        ) : null}
         {(incident.tags ?? []).slice(0, 3).map((tag) => (
           <SignalPill key={tag}>{tag}</SignalPill>
         ))}

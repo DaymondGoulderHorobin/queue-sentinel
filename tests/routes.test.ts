@@ -33,8 +33,9 @@ describe('incident API routes', () => {
     expect(payload).toMatchObject({
       status: 'ok',
       service: 'queue-sentinel',
-      sprint: 'sprint-2',
+      sprint: 'sprint-3',
       storeMode: 'memory',
+      scoringModelVersion: 'sprint-3-deterministic-v1',
     });
   });
 
@@ -45,6 +46,9 @@ describe('incident API routes', () => {
 
     expect(listResponse.status).toBe(200);
     expect(listPayload.incidents).toHaveLength(10);
+    expect(listPayload.incidents[0]?.priorityScore?.modelVersion).toBe(
+      'sprint-3-deterministic-v1',
+    );
 
     const detailResponse = await app.request('/api/incidents/inc-demo-001');
     const detailPayload = await readJson<IncidentDetailResponse>(detailResponse);

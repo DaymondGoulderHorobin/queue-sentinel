@@ -6,17 +6,35 @@ import {
   seedDemoIncidents,
   updateIncidentStatus,
 } from '../api/incidents';
-import { DEMO_INCIDENTS } from '../../shared/demoData';
-import type { ApiSource } from '../../shared/apiTypes';
+import { previewScoring, recomputeDemoScoring } from '../api/scoring';
+import type { ApiSource, ScoringPreviewResponse } from '../../shared/apiTypes';
+import { buildDemoScoringPreview } from '../../shared/scoringEngine';
 import type { IncidentStatus, QueueIncident } from '../../shared/types';
 import { getTopPriorityIncident } from '../../shared/workbench';
 
 type WorkbenchDataStatus = 'loading' | ApiSource;
 
-const fallbackIncidents = () => DEMO_INCIDENTS.map((incident) => ({ ...incident }));
+const fallbackScoringPreview = (): ScoringPreviewResponse => ({
+  status: 'ok',
+  source: 'fallback',
+  ...buildDemoScoringPreview(),
+});
 
 const getInitialSelectedIncidentId = () =>
-  getTopPriorityIncident(DEMO_INCIDENTS)?.id ?? DEMO_INCIDENTS[0]?.id ?? '';
+  getTopPriorityIncident(fallbackScoringPreview().incidents)?.id ??
+  fallbackScoringPreview().incidents[0]?.id ??
+  '';
+
+const fallbackIncidents = () => fallbackScoringPreview().incidents;
+
+const preferScoredIncidents = (
+  incidents: QueueIncident[],
+  scoringPreview: ScoringPreviewResponse,
+) => {
+  return incidents.some((incident) => incident.priorityScore)
+    ? incidents
+    : scoringPreview.incidents;
+};
 
 const replaceIncident = (
   incidents: readonly QueueIncident[],
@@ -35,6 +53,8 @@ export const useIncidentWorkbench = () => {
   const [dataStatus, setDataStatus] =
     useState<WorkbenchDataStatus>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [scoringPreview, setScoringPreview] =
+    useState<ScoringPreviewResponse>(fallbackScoringPreview);
   const [isLoading, setIsLoading] = useState(true);
   const [isMutating, setIsMutating] = useState(false);
 
@@ -67,13 +87,19 @@ export const useIncidentWorkbench = () => {
     setIsLoading(true);
 
     try {
-      const payload = await listIncidents();
-      preserveSelection(payload.incidents);
+      const [payload, previewPayload] = await Promise.all([
+        listIncidents(),
+        previewScoring(),
+      ]);
+      preserveSelection(preferScoredIncidents(payload.incidents, previewPayload));
+      setScoringPreview(previewPayload);
       setDataStatus(payload.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 2 fallback incidents.', error);
-      preserveSelection(fallbackIncidents());
+      console.info('Using local Sprint 3 fallback incidents.', error);
+      const fallbackPreview = fallbackScoringPreview();
+      preserveSelection(fallbackPreview.incidents);
+      setScoringPreview(fallbackPreview);
       setDataStatus('fallback');
       setErrorMessage(
         'API unavailable in this preview. Showing safe local fallback data.',
@@ -93,11 +119,18 @@ export const useIncidentWorkbench = () => {
     try {
       const payload = await seedDemoIncidents();
       preserveSelection(payload.incidents);
+      setScoringPreview({
+        status: 'ok',
+        source: payload.result.source,
+        ...buildDemoScoringPreview(payload.incidents),
+      });
       setDataStatus(payload.result.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 2 seed fallback.', error);
-      preserveSelection(fallbackIncidents());
+      console.info('Using local Sprint 3 seed fallback.', error);
+      const fallbackPreview = fallbackScoringPreview();
+      preserveSelection(fallbackPreview.incidents);
+      setScoringPreview(fallbackPreview);
       setDataStatus('fallback');
       setErrorMessage('Demo seed used local fallback data in this preview.');
     } finally {
@@ -111,11 +144,18 @@ export const useIncidentWorkbench = () => {
     try {
       const payload = await resetDemoIncidents();
       preserveSelection(payload.incidents);
+      setScoringPreview({
+        status: 'ok',
+        source: payload.result.source,
+        ...buildDemoScoringPreview(payload.incidents),
+      });
       setDataStatus(payload.result.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 2 reset fallback.', error);
-      preserveSelection(fallbackIncidents());
+      console.info('Using local Sprint 3 reset fallback.', error);
+      const fallbackPreview = fallbackScoringPreview();
+      preserveSelection(fallbackPreview.incidents);
+      setScoringPreview(fallbackPreview);
       setDataStatus('fallback');
       setErrorMessage('Demo reset used local fallback data in this preview.');
     } finally {
@@ -133,7 +173,7 @@ export const useIncidentWorkbench = () => {
         setDataStatus(payload.source);
         setErrorMessage(null);
       } catch (error) {
-        console.info('Using local Sprint 2 status fallback.', error);
+        console.info('Using local Sprint 3 status fallback.', error);
         const updatedIncident = incidents.find((incident) => incident.id === id);
 
         if (updatedIncident) {
@@ -157,6 +197,29 @@ export const useIncidentWorkbench = () => {
     [incidents, preserveSelection],
   );
 
+  const recomputeScoring = useCallback(async () => {
+    setIsMutating(true);
+
+    try {
+      const payload = await recomputeDemoScoring();
+      preserveSelection(payload.incidents);
+      setScoringPreview(payload);
+      setDataStatus(payload.source);
+      setErrorMessage(null);
+    } catch (error) {
+      console.info('Using local Sprint 3 recompute fallback.', error);
+      const fallbackPreview = fallbackScoringPreview();
+      preserveSelection(fallbackPreview.incidents);
+      setScoringPreview(fallbackPreview);
+      setDataStatus('fallback');
+      setErrorMessage(
+        'Scoring recompute used deterministic local fallback data in this preview.',
+      );
+    } finally {
+      setIsMutating(false);
+    }
+  }, [preserveSelection]);
+
   return {
     dataStatus,
     errorMessage,
@@ -164,7 +227,9 @@ export const useIncidentWorkbench = () => {
     isLoading,
     isMutating,
     refreshIncidents,
+    recomputeScoring,
     resetDemoQueue,
+    scoringPreview,
     seedDemoQueue,
     selectedIncident,
     selectedIncidentId: selectedIncident?.id ?? selectedIncidentId,

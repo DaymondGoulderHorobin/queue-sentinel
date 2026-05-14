@@ -589,6 +589,34 @@ p {
   gap: 8px;
 }
 
+.score-factor-list,
+.score-breakdown {
+  display: grid;
+  gap: 8px;
+}
+
+.score-factor,
+.score-breakdown__row {
+  background: #ffffff;
+  border: 1px solid #dce6eb;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 10px 12px;
+}
+
+.score-factor span,
+.score-breakdown__row span {
+  color: #2f6f83;
+  font-weight: 850;
+}
+
+.score-breakdown__row p {
+  color: #566a75;
+  margin-top: 3px;
+}
+
 .status-control {
   color: #40535e;
   display: grid;

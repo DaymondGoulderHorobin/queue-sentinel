@@ -15,6 +15,11 @@ export const IncidentPreview = ({
   onOpenCaseCard,
   onUpdateStatus,
 }: IncidentPreviewProps) => {
+  const topFactors = (incident.priorityScore?.factors ?? [])
+    .filter((factor) => factor.contribution > 0)
+    .sort((a, b) => b.contribution - a.contribution)
+    .slice(0, 3);
+
   return (
     <aside className="incident-preview" aria-label="Selected incident preview">
       <div className="preview-heading">
@@ -26,18 +31,31 @@ export const IncidentPreview = ({
 
       <div className="preview-stats">
         <span>
-          <strong>{incident.reportCount}</strong>
-          reports
+          <strong>{incident.priorityScore?.score ?? '--'}</strong>
+          score
         </span>
         <span>
-          <strong>{incident.queueAgeMinutes}m</strong>
-          queue age
+          <strong>{incident.clusterSummary?.signalCount ?? '--'}</strong>
+          signals
         </span>
         <span>
-          <strong>{incident.relatedItemCount}</strong>
-          related
+          <strong>{incident.clusterSummary?.uniqueItemCount ?? '--'}</strong>
+          items
         </span>
       </div>
+
+      {incident.clusterSummary ? (
+        <div className="preview-section">
+          <p className="eyebrow">Cluster summary</p>
+          <div className="signal-row">
+            <SignalPill>{incident.clusterSummary.signalCount} signals</SignalPill>
+            <SignalPill>{incident.clusterSummary.timeWindowMinutes}m window</SignalPill>
+            {incident.clusterSummary.groupingKeys.slice(0, 2).map((key) => (
+              <SignalPill key={key}>{key}</SignalPill>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="preview-section">
         <p className="eyebrow">Signals</p>
@@ -47,6 +65,20 @@ export const IncidentPreview = ({
           ))}
         </div>
       </div>
+
+      {topFactors.length > 0 ? (
+        <div className="preview-section">
+          <p className="eyebrow">Top score factors</p>
+          <div className="score-factor-list">
+            {topFactors.map((factor) => (
+              <div className="score-factor" key={factor.key}>
+                <strong>{factor.label}</strong>
+                <span>+{factor.contribution}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="preview-section">
         <p className="eyebrow">Rationale aid</p>

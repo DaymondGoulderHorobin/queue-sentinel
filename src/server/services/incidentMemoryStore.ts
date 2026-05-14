@@ -1,4 +1,4 @@
-import { DEMO_INCIDENTS } from '../../shared/demoData';
+import { SCORED_DEMO_INCIDENTS } from './incidentMaterializer';
 import type {
   ApiSource,
   IncidentMetadataPatch,
@@ -42,7 +42,7 @@ export const createIncidentMemoryStore = (
   const seedDemoIncidents = async (options?: { overwrite?: boolean }) => {
     let overwritten = 0;
 
-    for (const incident of DEMO_INCIDENTS) {
+    for (const incident of SCORED_DEMO_INCIDENTS) {
       if (incidents.has(incident.id)) {
         overwritten += 1;
       }
@@ -54,7 +54,7 @@ export const createIncidentMemoryStore = (
 
     return {
       source,
-      count: DEMO_INCIDENTS.length,
+      count: SCORED_DEMO_INCIDENTS.length,
       overwritten,
     } satisfies SeedDemoResult;
   };

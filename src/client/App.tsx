@@ -27,8 +27,11 @@ export const App = () => {
             errorMessage={workbench.errorMessage}
             incidents={workbench.incidents}
             isLoading={workbench.isLoading}
+            isMutating={workbench.isMutating}
             onInspectIncident={openCaseCard}
+            onRecomputeScoring={workbench.recomputeScoring}
             onRefresh={workbench.refreshIncidents}
+            scoringPreview={workbench.scoringPreview}
           />
         );
       case 'incidents':
@@ -64,8 +67,10 @@ export const App = () => {
             incidentCount={workbench.incidents.length}
             isMutating={workbench.isMutating}
             onRefresh={workbench.refreshIncidents}
+            onRecomputeScoring={workbench.recomputeScoring}
             onResetDemo={workbench.resetDemoQueue}
             onSeedDemo={workbench.seedDemoQueue}
+            scoringPreview={workbench.scoringPreview}
           />
         );
       default:
@@ -75,8 +80,11 @@ export const App = () => {
             errorMessage={workbench.errorMessage}
             incidents={workbench.incidents}
             isLoading={workbench.isLoading}
+            isMutating={workbench.isMutating}
             onInspectIncident={openCaseCard}
+            onRecomputeScoring={workbench.recomputeScoring}
             onRefresh={workbench.refreshIncidents}
+            scoringPreview={workbench.scoringPreview}
           />
         );
     }

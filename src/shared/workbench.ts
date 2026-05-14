@@ -4,8 +4,10 @@ import type {
   IncidentSortKey,
   PriorityDistributionItem,
   QueueIncident,
+  ScoringWorkbenchMetrics,
   WorkbenchMetrics,
 } from './types';
+import { SCORING_MODEL_VERSION } from './scoringEngine';
 
 export const PRIORITY_ORDER: Record<IncidentPriority, number> = {
   critical: 4,
@@ -77,6 +79,8 @@ export const filterIncidents = (
 const updatedTime = (incident: QueueIncident) =>
   new Date(incident.updatedAt).getTime();
 
+const scoreValue = (incident: QueueIncident) => incident.priorityScore?.score ?? 0;
+
 export const sortIncidents = (
   incidents: readonly QueueIncident[],
   sortKey: IncidentSortKey,
@@ -85,6 +89,7 @@ export const sortIncidents = (
     switch (sortKey) {
       case 'priority':
         return (
+          scoreValue(b) - scoreValue(a) ||
           PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority] ||
           b.queueAgeMinutes - a.queueAgeMinutes ||
           updatedTime(b) - updatedTime(a)
@@ -184,17 +189,67 @@ export const getTopPriorityIncident = (
   )[0];
 };
 
+export const getTopScoredIncident = (
+  incidents: readonly QueueIncident[],
+) => {
+  return [...incidents]
+    .filter((incident) => incident.status !== 'resolved')
+    .sort(
+      (a, b) =>
+        scoreValue(b) - scoreValue(a) ||
+        PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority] ||
+        b.queueAgeMinutes - a.queueAgeMinutes ||
+        a.id.localeCompare(b.id),
+    )[0];
+};
+
+export const getScoringWorkbenchMetrics = (
+  incidents: readonly QueueIncident[],
+): ScoringWorkbenchMetrics => {
+  const scoredIncidents = incidents.filter((incident) => incident.priorityScore);
+  const signalsProcessed = incidents.reduce(
+    (total, incident) => total + (incident.clusterSummary?.signalCount ?? 0),
+    0,
+  );
+  const clustersFormed = incidents.filter((incident) => incident.clusterSummary).length;
+  const totalScore = scoredIncidents.reduce(
+    (total, incident) => total + (incident.priorityScore?.score ?? 0),
+    0,
+  );
+  const highPriorityCount = incidents.filter(
+    (incident) => incident.priority === 'critical' || incident.priority === 'high',
+  ).length;
+
+  return {
+    signalsProcessed,
+    clustersFormed,
+    averageScore:
+      scoredIncidents.length === 0
+        ? 0
+        : Math.round(totalScore / scoredIncidents.length),
+    duplicateSignalsCollapsed: Math.max(signalsProcessed - clustersFormed, 0),
+    highPriorityShare:
+      incidents.length === 0
+        ? 0
+        : Math.round((highPriorityCount / incidents.length) * 100),
+    modelVersion: SCORING_MODEL_VERSION,
+  };
+};
+
 export const getRecommendedReviewFocus = (
   incidents: readonly QueueIncident[],
 ) => {
-  const topIncident = getTopPriorityIncident(incidents);
+  const topIncident =
+    getTopScoredIncident(incidents) ?? getTopPriorityIncident(incidents);
 
   if (!topIncident) {
     return 'No open demo incidents are currently waiting for review.';
   }
 
+  const score = topIncident.priorityScore?.score;
+
   if (topIncident.priority === 'critical') {
-    return `Start with ${topIncident.title}; it has ${topIncident.reportCount} reports and ${topIncident.relatedItemCount} related queue items.`;
+    return `Start with ${topIncident.title}; it scores ${score ?? 'highest'} from ${topIncident.clusterSummary?.signalCount ?? topIncident.reportCount} demo signals.`;
   }
 
   const staleIncident = sortIncidents(incidents, 'queueAge')[0];

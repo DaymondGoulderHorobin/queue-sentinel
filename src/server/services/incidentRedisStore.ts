@@ -1,4 +1,4 @@
-import { DEMO_INCIDENTS } from '../../shared/demoData';
+import { SCORED_DEMO_INCIDENTS } from './incidentMaterializer';
 import type {
   IncidentMetadataPatch,
   SeedDemoResult,
@@ -65,7 +65,7 @@ export const createIncidentRedisStore = (redis: RedisLike): IncidentStore => {
     const existingIds = await readIds(redis);
     let overwritten = 0;
 
-    for (const incident of DEMO_INCIDENTS) {
+    for (const incident of SCORED_DEMO_INCIDENTS) {
       const exists = existingIds.includes(incident.id);
 
       if (exists) {
@@ -79,7 +79,7 @@ export const createIncidentRedisStore = (redis: RedisLike): IncidentStore => {
 
     return {
       source: 'redis',
-      count: DEMO_INCIDENTS.length,
+      count: SCORED_DEMO_INCIDENTS.length,
       overwritten,
     } satisfies SeedDemoResult;
   };
@@ -92,7 +92,7 @@ export const createIncidentRedisStore = (redis: RedisLike): IncidentStore => {
 
       if (ids.length === 0) {
         await seedDemoIncidents();
-        return DEMO_INCIDENTS;
+        return SCORED_DEMO_INCIDENTS;
       }
 
       const values = await redis.mGet(ids.map(incidentKey));
