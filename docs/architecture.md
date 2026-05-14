@@ -1,38 +1,56 @@
 # Queue Sentinel Architecture
 
-Queue Sentinel uses the current Devvit Web split between client, server, and shared code.
+Queue Sentinel uses the current Devvit Web split between client, server, and shared code. Sprint 2 adds a persistence and API layer while keeping the moderation workflow safely read-only from Reddit's point of view.
 
 ## High-Level Shape
 
 - `devvit.json` declares the app name, post entrypoint, server bundle, and moderator menu item.
 - `src/client` contains the React workbench shell rendered through `app.html`.
 - `src/server` contains a Hono server mounted through `@devvit/web/server`.
-- `src/shared` holds the incident contracts and safe demo data used by both sides.
-- `tests` provides smoke and workbench helper coverage.
+- `src/shared` holds the incident contracts, API response types, and safe demo data used by both sides.
+- `tests` provides smoke, route, store, and workbench helper coverage.
+- `.github/workflows/ci.yml` runs install, type-check, lint, test, and build checks for pull requests and main branch pushes.
 
 ## Client
 
-The client is responsive and mock-data-driven. `App.tsx` owns the active navigation tab, selected incident id, and attempts to load `/api/incidents`. If the API is unavailable during a browser-only preview, the client falls back to local mock data.
+The client is API-first. `useIncidentWorkbench` loads `/api/incidents`, tracks loading and mutation state, exposes refresh/seed/reset/status actions, and falls back to local demo incidents when the API is unavailable during browser-only preview.
 
-The visible sections are Dashboard, Incidents, Case Card, Metrics, and Settings. The Incidents workbench supports local search, filters, sorting, selected preview, and Case Card handoff. All action controls in the Case Card are disabled because Sprint 1 must not provide real enforcement.
+The visible sections are Dashboard, Incidents, Case Card, Metrics, and Settings. The Incidents workbench supports local search, filters, sorting, selected preview, and Case Card handoff. Settings includes safe demo seed/reset controls. Case Card and preview status selectors update Queue Sentinel incident status only.
+
+All Reddit-facing enforcement controls remain disabled. Sprint 2 does not expose approve, remove, lock, ban, escalation, or trigger paths.
 
 ## Server
 
-The server is a Hono app with:
+The server is assembled through `createServerApp(store)` and mounted in `src/server/index.ts`.
 
-- `/api/health` for a typed health response.
-- `/api/incidents` for mock incident responses.
-- `/internal/menu/post-create` for creating a Queue Sentinel custom post from a subreddit moderator menu.
+Routes:
 
-Future sprints can add Reddit triggers and internal API endpoints without changing the client shell structure.
+- `GET /api/health` returns a typed health response with the active store mode.
+- `GET /api/incidents` lists persisted demo incidents.
+- `GET /api/incidents/:id` returns one incident or a typed 404.
+- `PATCH /api/incidents/:id/status` updates internal Queue Sentinel status only.
+- `PATCH /api/incidents/:id/metadata` accepts safe metadata fields only.
+- `POST /api/demo/seed` seeds the safe demo queue.
+- `POST /api/demo/reset` resets the safe demo queue to the Sprint 2 fixture set.
+- `POST /internal/menu/post-create` creates a Queue Sentinel custom post from a subreddit moderator menu.
 
 ## Storage Boundary
 
-`incidentStore` is the storage boundary for future Redis implementation. Sprint 1 returns static demo incidents only. Redis calls should be introduced behind this interface so the UI and server routes stay stable.
+`incidentStore` is the storage boundary for incidents. It exposes:
+
+- `listIncidents`
+- `getIncident`
+- `upsertIncident`
+- `updateIncidentStatus`
+- `updateIncidentMetadata`
+- `seedDemoIncidents`
+- `resetDemoIncidents`
+
+The default adapter uses Devvit Redis through `@devvit/web/server`. Set `QUEUE_SENTINEL_STORE_MODE=memory` to force the in-memory adapter for local debugging or tests. The browser-only Vite shell can still use local fallback demo data if the server is not running.
 
 ## Scoring Boundary
 
-`priorityScoring` currently mirrors mock priority values. It exists to mark where deterministic scoring and explainable ranking should live later. Sprint 1 adds client-side ordering helpers for the mock workbench, but does not implement production clustering or prioritization.
+`priorityScoring` currently mirrors demo priority values. It exists to mark where deterministic scoring and explainable ranking should live later. Sprint 2 does not implement production clustering or prioritization.
 
 ## Future Moderator Actions
 

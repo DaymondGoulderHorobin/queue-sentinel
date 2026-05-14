@@ -2,13 +2,19 @@ import { MetricCard } from '../components/MetricCard';
 import { SignalPill } from '../components/SignalPill';
 import { StatusBadge } from '../components/StatusBadge';
 import { PRIMARY_DEMO_INCIDENT } from '../../shared/demoData';
-import type { QueueIncident } from '../../shared/types';
+import type { IncidentStatus, QueueIncident } from '../../shared/types';
 
 interface CaseCardPageProps {
   incident: QueueIncident | undefined;
+  isMutating: boolean;
+  onUpdateStatus: (incidentId: string, status: IncidentStatus) => void;
 }
 
-export const CaseCardPage = ({ incident }: CaseCardPageProps) => {
+export const CaseCardPage = ({
+  incident,
+  isMutating,
+  onUpdateStatus,
+}: CaseCardPageProps) => {
   const selectedIncident = incident ?? PRIMARY_DEMO_INCIDENT;
   const timeline = selectedIncident.timeline ?? [];
 
@@ -33,7 +39,7 @@ export const CaseCardPage = ({ incident }: CaseCardPageProps) => {
         <div className="case-summary-grid">
           <MetricCard
             label="Reports"
-            meta="Mock queue reports"
+            meta="Demo queue reports"
             value={String(selectedIncident.reportCount)}
           />
           <MetricCard
@@ -70,7 +76,7 @@ export const CaseCardPage = ({ incident }: CaseCardPageProps) => {
             <p>{selectedIncident.rationaleDraft}</p>
             <small>
               Review aid only. Queue Sentinel is not making an enforcement
-              decision in Sprint 1.
+              decision in Sprint 2.
             </small>
           </div>
         </div>
@@ -111,10 +117,27 @@ export const CaseCardPage = ({ incident }: CaseCardPageProps) => {
             <p className="eyebrow">Safety boundary</p>
             <strong>Moderation actions are intentionally disabled.</strong>
             <p>
-              Sprint 1 demonstrates human review context only. No approve,
-              remove, lock, ban, escalation, Redis write, or trigger path is
-              active.
+              Sprint 2 updates Queue Sentinel status only. No approve, remove,
+              lock, ban, Reddit escalation, or trigger path is active.
             </p>
+            <label className="status-control status-control--compact">
+              Internal status only
+              <select
+                disabled={isMutating}
+                onChange={(event) =>
+                  onUpdateStatus(
+                    selectedIncident.id,
+                    event.target.value as IncidentStatus,
+                  )
+                }
+                value={selectedIncident.status}
+              >
+                <option value="open">Open</option>
+                <option value="reviewing">Reviewing</option>
+                <option value="resolved">Resolved</option>
+                <option value="escalated">Escalated</option>
+              </select>
+            </label>
           </div>
           <div
             className="disabled-actions"

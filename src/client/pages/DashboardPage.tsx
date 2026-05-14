@@ -2,6 +2,7 @@ import { MetricCard } from '../components/MetricCard';
 import { SignalPill } from '../components/SignalPill';
 import { StatusBadge } from '../components/StatusBadge';
 import { APP_NAME, SPRINT_LABEL } from '../../shared/constants';
+import type { ApiSource } from '../../shared/apiTypes';
 import type { QueueIncident } from '../../shared/types';
 import {
   getPriorityDistribution,
@@ -11,15 +12,21 @@ import {
 } from '../../shared/workbench';
 
 interface DashboardPageProps {
-  dataStatus: 'loading' | 'demo' | 'api';
+  dataStatus: 'loading' | ApiSource;
+  errorMessage: string | null;
   incidents: QueueIncident[];
+  isLoading: boolean;
   onInspectIncident: (incidentId: string) => void;
+  onRefresh: () => void;
 }
 
 export const DashboardPage = ({
   dataStatus,
+  errorMessage,
   incidents,
+  isLoading,
   onInspectIncident,
+  onRefresh,
 }: DashboardPageProps) => {
   const metrics = getWorkbenchMetrics(incidents);
   const distribution = getPriorityDistribution(incidents);
@@ -28,21 +35,28 @@ export const DashboardPage = ({
     ...distribution.map((item) => item.count),
     1,
   );
-  const dataLabel = dataStatus === 'api' ? 'API demo data' : 'Local demo data';
+  const dataLabel =
+    dataStatus === 'redis'
+      ? 'Redis-backed data'
+      : dataStatus === 'memory'
+        ? 'Memory store data'
+        : dataStatus === 'fallback'
+          ? 'Fallback demo data'
+          : 'Loading data';
 
   return (
     <section className="page-stack" aria-labelledby="dashboard-title">
       <div className="dashboard-hero">
         <div>
-          <p className="eyebrow">Core queue workbench</p>
+          <p className="eyebrow">Persistent queue workbench</p>
           <h2 id="dashboard-title">{APP_NAME}</h2>
           <p>
-            Ranked mock incidents, queue pressure signals, and case-card context
-            for faster human moderator triage.
+            Server-backed demo incidents, queue pressure signals, and case-card
+            context for faster human moderator triage.
           </p>
           <div className="hero-badges">
             <StatusBadge tone="build">{SPRINT_LABEL}</StatusBadge>
-            <StatusBadge tone={dataStatus === 'api' ? 'build' : 'open'}>
+            <StatusBadge tone={dataStatus === 'fallback' ? 'open' : 'build'}>
               {dataLabel}
             </StatusBadge>
           </div>
@@ -50,8 +64,18 @@ export const DashboardPage = ({
         <div className="review-focus">
           <p className="eyebrow">Recommended review focus</p>
           <strong>{getRecommendedReviewFocus(incidents)}</strong>
+          <button
+            className="secondary-action"
+            disabled={isLoading}
+            onClick={onRefresh}
+            type="button"
+          >
+            {isLoading ? 'Refreshing...' : 'Refresh incidents'}
+          </button>
         </div>
       </div>
+
+      {errorMessage ? <div className="notice-panel">{errorMessage}</div> : null}
 
       <div className="dashboard-grid dashboard-grid--six">
         <MetricCard
@@ -72,7 +96,7 @@ export const DashboardPage = ({
         />
         <MetricCard
           label="Average Queue Age"
-          meta="Mock backlog pressure"
+          meta="Demo backlog pressure"
           value={`${metrics.averageQueueAgeMinutes}m`}
         />
         <MetricCard
@@ -83,7 +107,7 @@ export const DashboardPage = ({
         />
         <MetricCard
           label="Resolved This Session"
-          meta="Mock resolved incidents"
+          meta="Internal demo state"
           value={String(metrics.resolvedThisSession)}
         />
       </div>

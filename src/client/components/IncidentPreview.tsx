@@ -1,15 +1,19 @@
 import { SignalPill } from './SignalPill';
 import { StatusBadge } from './StatusBadge';
-import type { QueueIncident } from '../../shared/types';
+import type { IncidentStatus, QueueIncident } from '../../shared/types';
 
 interface IncidentPreviewProps {
   incident: QueueIncident;
+  isMutating: boolean;
   onOpenCaseCard: (incidentId: string) => void;
+  onUpdateStatus: (incidentId: string, status: IncidentStatus) => void;
 }
 
 export const IncidentPreview = ({
   incident,
+  isMutating,
   onOpenCaseCard,
+  onUpdateStatus,
 }: IncidentPreviewProps) => {
   return (
     <aside className="incident-preview" aria-label="Selected incident preview">
@@ -48,6 +52,22 @@ export const IncidentPreview = ({
         <p className="eyebrow">Rationale aid</p>
         <p>{incident.rationaleDraft}</p>
       </div>
+
+      <label className="status-control">
+        Internal Queue Sentinel status
+        <select
+          disabled={isMutating}
+          onChange={(event) =>
+            onUpdateStatus(incident.id, event.target.value as IncidentStatus)
+          }
+          value={incident.status}
+        >
+          <option value="open">Open</option>
+          <option value="reviewing">Reviewing</option>
+          <option value="resolved">Resolved</option>
+          <option value="escalated">Escalated</option>
+        </select>
+      </label>
 
       <button
         className="primary-action"

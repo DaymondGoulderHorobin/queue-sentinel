@@ -80,20 +80,8 @@ export interface AppTab {
   label: string;
 }
 
-export interface HealthResponse {
-  status: 'ok';
-  service: 'queue-sentinel';
-  sprint: 'sprint-1';
-  timestamp: string;
-}
-
-export interface MockIncidentsResponse {
-  status: 'ok';
-  source: 'demo';
-  incidents: QueueIncident[];
-}
-
-export interface ErrorResponse {
-  status: 'error';
-  message: string;
-}
+export type {
+  ApiErrorResponse,
+  HealthResponse,
+  IncidentsListResponse,
+} from './apiTypes';

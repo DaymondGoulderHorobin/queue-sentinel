@@ -1,35 +1,36 @@
-import { DEMO_INCIDENTS } from '../../shared/demoData';
+import { redis } from '@devvit/web/server';
+
+import { createIncidentMemoryStore } from './incidentMemoryStore';
+import { createIncidentRedisStore } from './incidentRedisStore';
+import type {
+  IncidentMetadataPatch,
+  SeedDemoResult,
+} from '../../shared/apiTypes';
 import type { IncidentStatus, QueueIncident } from '../types/incident';
 
 export interface IncidentStore {
-  getIncident: (id: string) => Promise<QueueIncident | null>;
-  listIncidents: () => Promise<readonly QueueIncident[]>;
-  updateIncidentStatus: (
+  mode: 'redis' | 'memory';
+  listIncidents(): Promise<readonly QueueIncident[]>;
+  getIncident(id: string): Promise<QueueIncident | null>;
+  upsertIncident(incident: QueueIncident): Promise<QueueIncident>;
+  updateIncidentStatus(
     id: string,
     status: IncidentStatus,
-  ) => Promise<QueueIncident | null>;
+  ): Promise<QueueIncident | null>;
+  updateIncidentMetadata(
+    id: string,
+    patch: IncidentMetadataPatch,
+  ): Promise<QueueIncident | null>;
+  seedDemoIncidents(options?: { overwrite?: boolean }): Promise<SeedDemoResult>;
+  resetDemoIncidents(): Promise<SeedDemoResult>;
 }
 
-export const incidentStore: IncidentStore = {
-  async getIncident(id) {
-    return DEMO_INCIDENTS.find((incident) => incident.id === id) ?? null;
-  },
+export const createIncidentStore = (): IncidentStore => {
+  if (process.env.QUEUE_SENTINEL_STORE_MODE === 'memory') {
+    return createIncidentMemoryStore();
+  }
 
-  async listIncidents() {
-    return DEMO_INCIDENTS;
-  },
-
-  async updateIncidentStatus(id, status) {
-    const incident = DEMO_INCIDENTS.find((candidate) => candidate.id === id);
-
-    if (!incident) {
-      return null;
-    }
-
-    return {
-      ...incident,
-      status,
-      updatedAt: new Date().toISOString(),
-    };
-  },
+  return createIncidentRedisStore(redis);
 };
+
+export const incidentStore = createIncidentStore();

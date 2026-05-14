@@ -29,13 +29,13 @@ export const PRIMARY_DEMO_INCIDENT: QueueIncident = {
     {
       id: 'inc-demo-001-t1',
       label: 'First seen',
-      detail: 'Initial reported post entered the mock queue.',
+      detail: 'Initial reported post entered the demo queue.',
       occurredAt: '2026-05-14T08:20:00.000Z',
     },
     {
       id: 'inc-demo-001-t2',
       label: 'Reports accumulated',
-      detail: 'Report volume crossed the Sprint 1 critical demo threshold.',
+      detail: 'Report volume crossed the Sprint 2 critical demo threshold.',
       occurredAt: '2026-05-14T08:48:00.000Z',
     },
     {
@@ -209,13 +209,13 @@ export const DEMO_INCIDENTS: QueueIncident[] = [
     whySurfaced: [
       'Reports reference a sensitive information concern',
       'Queue age is elevated for a safety-adjacent rule area',
-      'Escalated status is mocked and does not notify anyone',
+      'Escalated status is demo-only and does not notify anyone',
     ],
     userContextSummary:
       'Demo safety-adjacent summary. No real personal information is present.',
     relatedItemCount: 2,
     rationaleDraft:
-      'Review carefully and avoid automated assumptions. Sprint 1 does not escalate or notify externally.',
+      'Review carefully and avoid automated assumptions. Sprint 2 does not escalate or notify externally.',
     createdAt: '2026-05-14T08:26:00.000Z',
     updatedAt: '2026-05-14T09:24:00.000Z',
     tags: ['privacy-review', 'safety-adjacent', 'careful-review'],
@@ -226,7 +226,7 @@ export const DEMO_INCIDENTS: QueueIncident[] = [
       {
         id: 'inc-demo-006-t1',
         label: 'Escalation placeholder',
-        detail: 'Marked escalated in mock data only; no external escalation occurred.',
+        detail: 'Marked escalated in demo data only; no external escalation occurred.',
         occurredAt: '2026-05-14T09:24:00.000Z',
       },
     ],
@@ -243,7 +243,7 @@ export const DEMO_INCIDENTS: QueueIncident[] = [
     whySurfaced: [
       'Reports share one lightweight rule area',
       'Grouped review can clear low-risk items quickly',
-      'No urgent safety signal is present in mock data',
+      'No urgent safety signal is present in demo data',
     ],
     userContextSummary:
       'Demo help-post cluster with repeated flair reports and low severity.',
@@ -276,14 +276,14 @@ export const DEMO_INCIDENTS: QueueIncident[] = [
     suspectedRuleArea: 'Title formatting',
     whySurfaced: [
       'Reports were duplicates across similar title issues',
-      'Mock resolved state demonstrates metrics without real action',
+      'Demo resolved state demonstrates metrics without real action',
       'No moderation action was performed by Queue Sentinel',
     ],
     userContextSummary:
-      'Resolved mock incident retained for Sprint 1 metric cards.',
+      'Resolved demo incident retained for Sprint 2 metric cards.',
     relatedItemCount: 5,
     rationaleDraft:
-      'Resolved in mock state only. This proves metrics can include completed review sessions later.',
+      'Resolved in demo state only. This proves metrics can include completed review sessions later.',
     createdAt: '2026-05-14T08:38:00.000Z',
     updatedAt: '2026-05-14T09:12:00.000Z',
     tags: ['resolved-demo', 'title-formatting'],
@@ -293,8 +293,8 @@ export const DEMO_INCIDENTS: QueueIncident[] = [
     timeline: [
       {
         id: 'inc-demo-008-t1',
-        label: 'Mock resolved',
-        detail: 'Incident is resolved only in local demo data.',
+        label: 'Demo resolved',
+        detail: 'Incident is resolved only in demo data.',
         occurredAt: '2026-05-14T09:12:00.000Z',
       },
     ],
@@ -328,7 +328,7 @@ export const DEMO_INCIDENTS: QueueIncident[] = [
       {
         id: 'inc-demo-009-t1',
         label: 'Age threshold crossed',
-        detail: 'Queue age rose above one hour in mock data.',
+        detail: 'Queue age rose above one hour in demo data.',
         occurredAt: '2026-05-14T09:05:00.000Z',
       },
     ],
@@ -351,7 +351,7 @@ export const DEMO_INCIDENTS: QueueIncident[] = [
       'Demo profile-level summary based on repeated queue touches, with no real identity data.',
     relatedItemCount: 5,
     rationaleDraft:
-      'Use the case card as a context aid only. Sprint 1 must not recommend account action.',
+      'Use the case card as a context aid only. Sprint 2 must not recommend account action.',
     createdAt: '2026-05-14T09:04:00.000Z',
     updatedAt: '2026-05-14T09:26:00.000Z',
     tags: ['profile-context', 'pattern-review'],

@@ -56,7 +56,7 @@ export const MetricsPage = ({ incidents }: MetricsPageProps) => {
         />
         <MetricCard
           label="Rule Areas Surfaced"
-          meta="Distinct mock categories"
+          meta="Distinct demo categories"
           value={String(metrics.ruleAreasSurfaced)}
         />
       </div>

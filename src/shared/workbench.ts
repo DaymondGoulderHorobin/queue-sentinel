@@ -190,7 +190,7 @@ export const getRecommendedReviewFocus = (
   const topIncident = getTopPriorityIncident(incidents);
 
   if (!topIncident) {
-    return 'No open mock incidents are currently waiting for review.';
+    return 'No open demo incidents are currently waiting for review.';
   }
 
   if (topIncident.priority === 'critical') {
