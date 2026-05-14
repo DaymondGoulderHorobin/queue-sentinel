@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { AppShell } from './components/AppShell';
 import { CaseCardPage } from './pages/CaseCardPage';
@@ -6,123 +6,89 @@ import { DashboardPage } from './pages/DashboardPage';
 import { IncidentsPage } from './pages/IncidentsPage';
 import { MetricsPage } from './pages/MetricsPage';
 import { SettingsPage } from './pages/SettingsPage';
-import { DEMO_INCIDENTS } from '../shared/demoData';
-import type {
-  AppTabId,
-  ErrorResponse,
-  MockIncidentsResponse,
-  QueueIncident,
-} from '../shared/types';
-import { getTopPriorityIncident } from '../shared/workbench';
+import { useIncidentWorkbench } from './hooks/useIncidentWorkbench';
+import type { AppTabId } from '../shared/types';
 
 export const App = () => {
   const [activeTab, setActiveTab] = useState<AppTabId>('dashboard');
-  const [incidents, setIncidents] = useState<QueueIncident[]>(DEMO_INCIDENTS);
-  const [selectedIncidentId, setSelectedIncidentId] = useState<string>(
-    () => getTopPriorityIncident(DEMO_INCIDENTS)?.id ?? DEMO_INCIDENTS[0]?.id ?? '',
-  );
-  const [dataStatus, setDataStatus] = useState<'loading' | 'demo' | 'api'>(
-    'loading',
-  );
-
-  useEffect(() => {
-    const loadIncidents = async () => {
-      try {
-        const response = await fetch('/api/incidents');
-
-        if (!response.ok) {
-          throw new Error(`Mock incidents request failed: ${response.status}`);
-        }
-
-        const payload = (await response.json()) as
-          | MockIncidentsResponse
-          | ErrorResponse;
-
-        if (payload.status === 'ok') {
-          setIncidents(payload.incidents);
-          setDataStatus('api');
-          return;
-        }
-
-        throw new Error(payload.message);
-      } catch (error) {
-        console.info('Using local Sprint 1 demo incidents.', error);
-        setIncidents(DEMO_INCIDENTS);
-        setDataStatus('demo');
-      }
-    };
-
-    void loadIncidents();
-  }, []);
-
-  useEffect(() => {
-    if (incidents.length === 0) {
-      return;
-    }
-
-    const hasSelectedIncident = incidents.some(
-      (incident) => incident.id === selectedIncidentId,
-    );
-
-    if (!hasSelectedIncident) {
-      setSelectedIncidentId(
-        getTopPriorityIncident(incidents)?.id ?? incidents[0]?.id ?? '',
-      );
-    }
-  }, [incidents, selectedIncidentId]);
-
-  const selectedIncident = useMemo(() => {
-    return (
-      incidents.find((incident) => incident.id === selectedIncidentId) ??
-      getTopPriorityIncident(incidents) ??
-      incidents[0]
-    );
-  }, [incidents, selectedIncidentId]);
-
-  const selectIncident = (incidentId: string) => {
-    setSelectedIncidentId(incidentId);
-  };
+  const workbench = useIncidentWorkbench();
 
   const openCaseCard = (incidentId: string) => {
-    setSelectedIncidentId(incidentId);
+    workbench.selectIncident(incidentId);
     setActiveTab('case-card');
   };
 
-  const page = useMemo(() => {
+  const page = (() => {
     switch (activeTab) {
       case 'dashboard':
         return (
           <DashboardPage
-            dataStatus={dataStatus}
-            incidents={incidents}
+            dataStatus={workbench.dataStatus}
+            errorMessage={workbench.errorMessage}
+            incidents={workbench.incidents}
+            isLoading={workbench.isLoading}
+            isMutating={workbench.isMutating}
             onInspectIncident={openCaseCard}
+            onRecomputeScoring={workbench.recomputeScoring}
+            onRefresh={workbench.refreshIncidents}
+            scoringPreview={workbench.scoringPreview}
           />
         );
       case 'incidents':
         return (
           <IncidentsPage
-            incidents={incidents}
+            dataStatus={workbench.dataStatus}
+            errorMessage={workbench.errorMessage}
+            incidents={workbench.incidents}
+            isLoading={workbench.isLoading}
+            isMutating={workbench.isMutating}
             onOpenCaseCard={openCaseCard}
-            onSelectIncident={selectIncident}
-            selectedIncidentId={selectedIncident?.id ?? ''}
+            onRefresh={workbench.refreshIncidents}
+            onSelectIncident={workbench.selectIncident}
+            onUpdateStatus={workbench.updateStatus}
+            selectedIncidentId={workbench.selectedIncidentId}
           />
         );
       case 'case-card':
-        return <CaseCardPage incident={selectedIncident} />;
+        return (
+          <CaseCardPage
+            incident={workbench.selectedIncident}
+            isMutating={workbench.isMutating}
+            onUpdateStatus={workbench.updateStatus}
+          />
+        );
       case 'metrics':
-        return <MetricsPage incidents={incidents} />;
+        return <MetricsPage incidents={workbench.incidents} />;
       case 'settings':
-        return <SettingsPage />;
+        return (
+          <SettingsPage
+            dataStatus={workbench.dataStatus}
+            errorMessage={workbench.errorMessage}
+            incidentCount={workbench.incidents.length}
+            isMutating={workbench.isMutating}
+            onRefresh={workbench.refreshIncidents}
+            onRecomputeScoring={workbench.recomputeScoring}
+            onResetDemo={workbench.resetDemoQueue}
+            onSeedDemo={workbench.seedDemoQueue}
+            scoringPreview={workbench.scoringPreview}
+          />
+        );
       default:
         return (
           <DashboardPage
-            dataStatus={dataStatus}
-            incidents={incidents}
+            dataStatus={workbench.dataStatus}
+            errorMessage={workbench.errorMessage}
+            incidents={workbench.incidents}
+            isLoading={workbench.isLoading}
+            isMutating={workbench.isMutating}
             onInspectIncident={openCaseCard}
+            onRecomputeScoring={workbench.recomputeScoring}
+            onRefresh={workbench.refreshIncidents}
+            scoringPreview={workbench.scoringPreview}
           />
         );
     }
-  }, [activeTab, dataStatus, incidents, selectedIncident]);
+  })();
 
   return (
     <AppShell activeTab={activeTab} onTabChange={setActiveTab}>

@@ -2,15 +2,22 @@ import { MetricCard } from '../components/MetricCard';
 import { SignalPill } from '../components/SignalPill';
 import { StatusBadge } from '../components/StatusBadge';
 import { PRIMARY_DEMO_INCIDENT } from '../../shared/demoData';
-import type { QueueIncident } from '../../shared/types';
+import type { IncidentStatus, QueueIncident } from '../../shared/types';
 
 interface CaseCardPageProps {
   incident: QueueIncident | undefined;
+  isMutating: boolean;
+  onUpdateStatus: (incidentId: string, status: IncidentStatus) => void;
 }
 
-export const CaseCardPage = ({ incident }: CaseCardPageProps) => {
+export const CaseCardPage = ({
+  incident,
+  isMutating,
+  onUpdateStatus,
+}: CaseCardPageProps) => {
   const selectedIncident = incident ?? PRIMARY_DEMO_INCIDENT;
   const timeline = selectedIncident.timeline ?? [];
+  const scoreFactors = selectedIncident.priorityScore?.factors ?? [];
 
   return (
     <section className="page-stack" aria-labelledby="case-card-title">
@@ -32,9 +39,9 @@ export const CaseCardPage = ({ incident }: CaseCardPageProps) => {
       <article className="case-card case-card--polished">
         <div className="case-summary-grid">
           <MetricCard
-            label="Reports"
-            meta="Mock queue reports"
-            value={String(selectedIncident.reportCount)}
+            label="Score"
+            meta={selectedIncident.priorityScore?.modelVersion ?? 'Awaiting recompute'}
+            value={String(selectedIncident.priorityScore?.score ?? '--')}
           />
           <MetricCard
             label="Queue Age"
@@ -44,7 +51,10 @@ export const CaseCardPage = ({ incident }: CaseCardPageProps) => {
           <MetricCard
             label="Related Items"
             meta="Grouped context"
-            value={String(selectedIncident.relatedItemCount)}
+            value={String(
+              selectedIncident.clusterSummary?.uniqueItemCount ??
+                selectedIncident.relatedItemCount,
+            )}
           />
           <MetricCard
             label="Confidence"
@@ -70,10 +80,57 @@ export const CaseCardPage = ({ incident }: CaseCardPageProps) => {
             <p>{selectedIncident.rationaleDraft}</p>
             <small>
               Review aid only. Queue Sentinel is not making an enforcement
-              decision in Sprint 1.
+              decision in Sprint 3.
             </small>
           </div>
         </div>
+
+        {selectedIncident.clusterSummary ? (
+          <div className="case-section">
+            <p className="eyebrow">Cluster summary</p>
+            <div className="metric-strip metric-strip--wide">
+              <span>
+                <strong>{selectedIncident.clusterSummary.signalCount}</strong>
+                signals
+              </span>
+              <span>
+                <strong>{selectedIncident.clusterSummary.timeWindowMinutes}m</strong>
+                window
+              </span>
+              <span>
+                <strong>
+                  {selectedIncident.clusterSummary.representativeSignalIds.length}
+                </strong>
+                examples
+              </span>
+            </div>
+            <div className="signal-row">
+              {selectedIncident.clusterSummary.groupingKeys.map((key) => (
+                <SignalPill key={key}>{key}</SignalPill>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {scoreFactors.length > 0 ? (
+          <div className="case-section">
+            <p className="eyebrow">Score breakdown</p>
+            <div className="score-breakdown">
+              {scoreFactors.map((factor) => (
+                <div className="score-breakdown__row" key={factor.key}>
+                  <div>
+                    <strong>{factor.label}</strong>
+                    <p>{factor.explanation}</p>
+                  </div>
+                  <span>
+                    {factor.contribution > 0 ? '+' : ''}
+                    {factor.contribution}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="case-section">
           <p className="eyebrow">Why surfaced</p>
@@ -111,10 +168,28 @@ export const CaseCardPage = ({ incident }: CaseCardPageProps) => {
             <p className="eyebrow">Safety boundary</p>
             <strong>Moderation actions are intentionally disabled.</strong>
             <p>
-              Sprint 1 demonstrates human review context only. No approve,
-              remove, lock, ban, escalation, Redis write, or trigger path is
-              active.
+              Sprint 3 recomputes deterministic demo scoring only. No approve,
+              remove, lock, ban, Reddit escalation, ingestion, webhook, AI, or
+              trigger path is active.
             </p>
+            <label className="status-control status-control--compact">
+              Internal status only
+              <select
+                disabled={isMutating}
+                onChange={(event) =>
+                  onUpdateStatus(
+                    selectedIncident.id,
+                    event.target.value as IncidentStatus,
+                  )
+                }
+                value={selectedIncident.status}
+              >
+                <option value="open">Open</option>
+                <option value="reviewing">Reviewing</option>
+                <option value="resolved">Resolved</option>
+                <option value="escalated">Escalated</option>
+              </select>
+            </label>
           </div>
           <div
             className="disabled-actions"

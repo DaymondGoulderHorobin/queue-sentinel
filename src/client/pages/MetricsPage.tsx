@@ -2,6 +2,7 @@ import { MetricCard } from '../components/MetricCard';
 import type { QueueIncident } from '../../shared/types';
 import {
   getPriorityDistribution,
+  getScoringWorkbenchMetrics,
   getWorkbenchMetrics,
 } from '../../shared/workbench';
 
@@ -11,6 +12,7 @@ interface MetricsPageProps {
 
 export const MetricsPage = ({ incidents }: MetricsPageProps) => {
   const metrics = getWorkbenchMetrics(incidents);
+  const scoringMetrics = getScoringWorkbenchMetrics(incidents);
   const distribution = getPriorityDistribution(incidents);
   const maxDistributionCount = Math.max(
     ...distribution.map((item) => item.count),
@@ -21,42 +23,42 @@ export const MetricsPage = ({ incidents }: MetricsPageProps) => {
     <section className="page-stack" aria-labelledby="metrics-title">
       <div className="page-heading">
         <div>
-          <p className="eyebrow">Demo sprint metrics</p>
-          <h2 id="metrics-title">Mock impact signals</h2>
+          <p className="eyebrow">Deterministic scoring metrics</p>
+          <h2 id="metrics-title">Clustering and scoring impact</h2>
         </div>
       </div>
 
       <div className="dashboard-grid dashboard-grid--six">
         <MetricCard
-          label="Duplicate Reports Collapsed"
-          meta="Mock estimate from grouped reports"
-          value={String(metrics.duplicateReportsCollapsed)}
+          label="Signals Processed"
+          meta={scoringMetrics.modelVersion}
+          value={String(scoringMetrics.signalsProcessed)}
         />
         <MetricCard
-          label="Total Related Queue Items"
-          meta="Grouped incident context"
-          value={String(metrics.totalRelatedItems)}
+          label="Clusters Formed"
+          meta="Final incident groups"
+          value={String(scoringMetrics.clustersFormed)}
         />
         <MetricCard
-          label="Average Queue Age"
-          meta="Demo backlog signal"
-          value={`${metrics.averageQueueAgeMinutes}m`}
+          label="Average Score"
+          meta="Across scored incidents"
+          value={String(scoringMetrics.averageScore)}
         />
         <MetricCard
-          label="High Priority Count"
-          meta="Critical and high cases"
+          label="Critical or High"
+          meta="Scored priority share"
           tone="urgent"
-          value={String(metrics.highPriorityIncidents)}
+          value={`${scoringMetrics.highPriorityShare}%`}
         />
         <MetricCard
-          label="Estimated Clicks Saved"
-          meta="Demo multiplier only"
+          label="Signals Collapsed"
+          meta="Beyond final clusters"
           tone="success"
-          value={String(metrics.estimatedClicksSaved)}
+          value={String(scoringMetrics.duplicateSignalsCollapsed)}
         />
         <MetricCard
           label="Rule Areas Surfaced"
-          meta="Distinct mock categories"
+          meta="Distinct demo categories"
           value={String(metrics.ruleAreasSurfaced)}
         />
       </div>

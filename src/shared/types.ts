@@ -8,6 +8,8 @@ export type SignalStrength = 'low' | 'medium' | 'high';
 
 export type ConfidenceLabel = 'low' | 'medium' | 'high';
 
+export type ScoringModelVersion = 'sprint-3-deterministic-v1';
+
 export type IncidentSortKey =
   | 'priority'
   | 'queueAge'
@@ -20,6 +22,48 @@ export interface IncidentTimelineEvent {
   label: string;
   detail: string;
   occurredAt: string;
+}
+
+export interface QueueSignal {
+  id: string;
+  itemId: string;
+  itemType: QueueItemType;
+  subjectKey: string;
+  authorKey?: string;
+  domainKey?: string;
+  threadKey?: string;
+  suspectedRuleArea: string;
+  reportReason: string;
+  createdAt: string;
+  receivedAt: string;
+  tags?: string[];
+}
+
+export interface ScoreFactor {
+  key: string;
+  label: string;
+  value: number;
+  weight: number;
+  contribution: number;
+  explanation: string;
+}
+
+export interface PriorityScore {
+  score: number;
+  priority: IncidentPriority;
+  confidenceLabel: ConfidenceLabel;
+  factors: ScoreFactor[];
+  reasons: string[];
+  modelVersion: ScoringModelVersion;
+}
+
+export interface ClusterSummary {
+  clusterId: string;
+  signalCount: number;
+  uniqueItemCount: number;
+  timeWindowMinutes: number;
+  groupingKeys: string[];
+  representativeSignalIds: string[];
 }
 
 export interface QueueIncident {
@@ -42,6 +86,8 @@ export interface QueueIncident {
   recommendedReviewAction?: string;
   confidenceLabel?: ConfidenceLabel;
   timeline?: IncidentTimelineEvent[];
+  clusterSummary?: ClusterSummary;
+  priorityScore?: PriorityScore;
 }
 
 export interface IncidentFilters {
@@ -63,6 +109,15 @@ export interface WorkbenchMetrics {
   resolvedThisSession: number;
 }
 
+export interface ScoringWorkbenchMetrics {
+  signalsProcessed: number;
+  clustersFormed: number;
+  averageScore: number;
+  duplicateSignalsCollapsed: number;
+  highPriorityShare: number;
+  modelVersion: ScoringModelVersion;
+}
+
 export interface PriorityDistributionItem {
   priority: IncidentPriority;
   count: number;
@@ -80,20 +135,8 @@ export interface AppTab {
   label: string;
 }
 
-export interface HealthResponse {
-  status: 'ok';
-  service: 'queue-sentinel';
-  sprint: 'sprint-1';
-  timestamp: string;
-}
-
-export interface MockIncidentsResponse {
-  status: 'ok';
-  source: 'demo';
-  incidents: QueueIncident[];
-}
-
-export interface ErrorResponse {
-  status: 'error';
-  message: string;
-}
+export type {
+  ApiErrorResponse,
+  HealthResponse,
+  IncidentsListResponse,
+} from './apiTypes';

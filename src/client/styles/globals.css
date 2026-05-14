@@ -223,7 +223,8 @@ p {
 
 .hero-badges,
 .case-heading-badges,
-.signal-row {
+.signal-row,
+.page-actions {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
@@ -425,7 +426,8 @@ p {
 .primary-action,
 .secondary-action,
 .empty-state button,
-.filter-footer button {
+.filter-footer button,
+.demo-actions button {
   border: 0;
   border-radius: 6px;
   cursor: pointer;
@@ -442,9 +444,27 @@ p {
 
 .secondary-action,
 .empty-state button,
-.filter-footer button {
+.filter-footer button,
+.demo-actions button {
   background: #eef4f6;
   color: #15313d;
+}
+
+.primary-action:disabled,
+.secondary-action:disabled,
+.empty-state button:disabled,
+.filter-footer button:disabled,
+.demo-actions button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.notice-panel {
+  background: #fff8dc;
+  border: 1px solid #ead891;
+  border-radius: 8px;
+  color: #6f5506;
+  padding: 12px 14px;
 }
 
 .filters-panel {
@@ -569,6 +589,57 @@ p {
   gap: 8px;
 }
 
+.score-factor-list,
+.score-breakdown {
+  display: grid;
+  gap: 8px;
+}
+
+.score-factor,
+.score-breakdown__row {
+  background: #ffffff;
+  border: 1px solid #dce6eb;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 10px 12px;
+}
+
+.score-factor span,
+.score-breakdown__row span {
+  color: #2f6f83;
+  font-weight: 850;
+}
+
+.score-breakdown__row p {
+  color: #566a75;
+  margin-top: 3px;
+}
+
+.status-control {
+  color: #40535e;
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.status-control select {
+  background: #fbfdfe;
+  border: 1px solid #cfdde3;
+  border-radius: 6px;
+  color: #18232c;
+  min-height: 40px;
+  padding: 8px 10px;
+  text-transform: capitalize;
+}
+
+.status-control--compact {
+  margin-top: 10px;
+  max-width: 260px;
+}
+
 .empty-state {
   display: grid;
   gap: 10px;
@@ -673,6 +744,40 @@ p {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.demo-panel {
+  background: #ffffff;
+  border: 1px solid #d9e3e8;
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(21, 49, 61, 0.08);
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.demo-panel h3 {
+  font-size: 1.22rem;
+}
+
+.demo-panel p,
+.demo-panel__meta {
+  color: #566a75;
+}
+
+.demo-panel__meta,
+.demo-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.demo-panel__meta span {
+  background: #f3f7f8;
+  border: 1px solid #dce6eb;
+  border-radius: 8px;
+  padding: 10px 12px;
 }
 
 .settings-item {
