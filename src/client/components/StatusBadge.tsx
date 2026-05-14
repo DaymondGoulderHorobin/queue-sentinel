@@ -1,6 +1,15 @@
 import type { PropsWithChildren } from 'react';
 
-type StatusBadgeTone = 'build' | 'critical' | 'high' | 'medium' | 'low' | 'open';
+type StatusBadgeTone =
+  | 'build'
+  | 'critical'
+  | 'high'
+  | 'medium'
+  | 'low'
+  | 'open'
+  | 'reviewing'
+  | 'resolved'
+  | 'escalated';
 
 interface StatusBadgeProps extends PropsWithChildren {
   tone?: StatusBadgeTone;

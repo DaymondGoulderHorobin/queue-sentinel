@@ -4,6 +4,24 @@ export type IncidentStatus = 'open' | 'reviewing' | 'resolved' | 'escalated';
 
 export type QueueItemType = 'post' | 'comment' | 'user' | 'domain';
 
+export type SignalStrength = 'low' | 'medium' | 'high';
+
+export type ConfidenceLabel = 'low' | 'medium' | 'high';
+
+export type IncidentSortKey =
+  | 'priority'
+  | 'queueAge'
+  | 'reportCount'
+  | 'relatedItems'
+  | 'updatedAt';
+
+export interface IncidentTimelineEvent {
+  id: string;
+  label: string;
+  detail: string;
+  occurredAt: string;
+}
+
 export interface QueueIncident {
   id: string;
   priority: IncidentPriority;
@@ -19,6 +37,35 @@ export interface QueueIncident {
   rationaleDraft: string;
   createdAt: string;
   updatedAt: string;
+  tags?: string[];
+  signalStrength?: SignalStrength;
+  recommendedReviewAction?: string;
+  confidenceLabel?: ConfidenceLabel;
+  timeline?: IncidentTimelineEvent[];
+}
+
+export interface IncidentFilters {
+  search: string;
+  priority: IncidentPriority | 'all';
+  status: IncidentStatus | 'all';
+  itemType: QueueItemType | 'all';
+  ruleArea: string;
+}
+
+export interface WorkbenchMetrics {
+  openIncidents: number;
+  highPriorityIncidents: number;
+  duplicateReportsCollapsed: number;
+  totalRelatedItems: number;
+  averageQueueAgeMinutes: number;
+  estimatedClicksSaved: number;
+  ruleAreasSurfaced: number;
+  resolvedThisSession: number;
+}
+
+export interface PriorityDistributionItem {
+  priority: IncidentPriority;
+  count: number;
 }
 
 export type AppTabId =
@@ -36,7 +83,7 @@ export interface AppTab {
 export interface HealthResponse {
   status: 'ok';
   service: 'queue-sentinel';
-  sprint: 'sprint-0';
+  sprint: 'sprint-1';
   timestamp: string;
 }
 
