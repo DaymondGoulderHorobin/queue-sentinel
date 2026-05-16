@@ -9,6 +9,20 @@ interface IncidentPreviewProps {
   onUpdateStatus: (incidentId: string, status: IncidentStatus) => void;
 }
 
+const provenanceLabel = (incident: QueueIncident) => {
+  const source = incident.ingestionProvenance?.source;
+
+  if (source === 'playtest-readonly') {
+    return 'Playtest read-only';
+  }
+
+  if (source === 'fallback') {
+    return 'Fallback';
+  }
+
+  return 'Synthetic demo';
+};
+
 export const IncidentPreview = ({
   incident,
   isMutating,
@@ -60,6 +74,7 @@ export const IncidentPreview = ({
       <div className="preview-section">
         <p className="eyebrow">Signals</p>
         <div className="signal-row">
+          <SignalPill>{provenanceLabel(incident)}</SignalPill>
           {incident.whySurfaced.slice(0, 3).map((reason) => (
             <SignalPill key={reason}>{reason}</SignalPill>
           ))}

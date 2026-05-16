@@ -10,6 +10,20 @@ interface CaseCardPageProps {
   onUpdateStatus: (incidentId: string, status: IncidentStatus) => void;
 }
 
+const provenanceLabel = (incident: QueueIncident) => {
+  const source = incident.ingestionProvenance?.source;
+
+  if (source === 'playtest-readonly') {
+    return 'Playtest read-only';
+  }
+
+  if (source === 'fallback') {
+    return 'Fallback';
+  }
+
+  return 'Synthetic demo';
+};
+
 export const CaseCardPage = ({
   incident,
   isMutating,
@@ -18,6 +32,8 @@ export const CaseCardPage = ({
   const selectedIncident = incident ?? PRIMARY_DEMO_INCIDENT;
   const timeline = selectedIncident.timeline ?? [];
   const scoreFactors = selectedIncident.priorityScore?.factors ?? [];
+  const provenance = selectedIncident.ingestionProvenance;
+  const provenanceText = provenanceLabel(selectedIncident);
 
   return (
     <section className="page-stack" aria-labelledby="case-card-title">
@@ -33,6 +49,7 @@ export const CaseCardPage = ({
           <StatusBadge tone={selectedIncident.status}>
             {selectedIncident.status}
           </StatusBadge>
+          <StatusBadge tone="build">{provenanceText}</StatusBadge>
         </div>
       </div>
 
@@ -63,6 +80,18 @@ export const CaseCardPage = ({
           />
         </div>
 
+        <div className="case-section">
+          <p className="eyebrow">Signal provenance</p>
+          <h3>{provenanceText}</h3>
+          <p>
+            {provenance?.subredditName
+              ? `Accepted from r/${provenance.subredditName} read-only metadata.`
+              : 'Built from isolated demo or fallback metadata.'}{' '}
+            {provenance?.signalIds.length ?? 0} signal references are attached;
+            full post and comment bodies are not stored here.
+          </p>
+        </div>
+
         <div className="case-two-column">
           <div className="case-section">
             <p className="eyebrow">Suspected rule area</p>
@@ -80,7 +109,7 @@ export const CaseCardPage = ({
             <p>{selectedIncident.rationaleDraft}</p>
             <small>
               Review aid only. Queue Sentinel is not making an enforcement
-              decision in Sprint 3.
+              decision in Sprint 4.
             </small>
           </div>
         </div>
@@ -168,8 +197,8 @@ export const CaseCardPage = ({
             <p className="eyebrow">Safety boundary</p>
             <strong>Moderation actions are intentionally disabled.</strong>
             <p>
-              Sprint 3 recomputes deterministic demo scoring only. No approve,
-              remove, lock, ban, Reddit escalation, ingestion, webhook, AI, or
+              Sprint 4 can persist allowlisted read-only metadata only. No
+              approve, remove, lock, ban, Reddit escalation, webhook, AI, or
               trigger path is active.
             </p>
             <label className="status-control status-control--compact">
@@ -187,7 +216,6 @@ export const CaseCardPage = ({
                 <option value="open">Open</option>
                 <option value="reviewing">Reviewing</option>
                 <option value="resolved">Resolved</option>
-                <option value="escalated">Escalated</option>
               </select>
             </label>
           </div>
@@ -203,9 +231,6 @@ export const CaseCardPage = ({
             </button>
             <button disabled type="button">
               Lock
-            </button>
-            <button disabled type="button">
-              Escalate
             </button>
           </div>
         </div>

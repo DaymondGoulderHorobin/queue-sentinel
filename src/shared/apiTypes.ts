@@ -1,9 +1,15 @@
 import type {
   ConfidenceLabel,
+  IngestionRunSummary,
   IncidentStatus,
   IncidentTimelineEvent,
   QueueIncident,
+  QueueSignal,
+  ReadonlyIngestionConfig,
+  ReadonlyIngestionRejection,
+  RedditReadonlyInput,
   ScoringModelVersion,
+  SignalSource,
 } from './types';
 
 export type ApiSource = 'redis' | 'memory' | 'fallback';
@@ -66,14 +72,17 @@ export interface SeedDemoResponse extends ApiOkResponse {
 
 export interface HealthResponse extends ApiOkResponse {
   service: 'queue-sentinel';
-  sprint: 'sprint-3';
+  sprint: 'sprint-4';
   storeMode: ApiSource;
+  ingestionMode: ReadonlyIngestionConfig['mode'];
   scoringModelVersion: ScoringModelVersion;
   timestamp: string;
 }
 
 export interface ScoringPreviewResponse extends ApiOkResponse {
   source: ApiSource;
+  signalSource: SignalSource;
+  runId?: string;
   modelVersion: ScoringModelVersion;
   signalsProcessed: number;
   clustersFormed: number;
@@ -83,3 +92,41 @@ export interface ScoringPreviewResponse extends ApiOkResponse {
 }
 
 export type ScoringRecomputeResponse = ScoringPreviewResponse;
+
+export interface IngestionStatusResponse extends ApiOkResponse {
+  source: ApiSource;
+  config: ReadonlyIngestionConfig;
+  signalCount: number;
+  lastRun: IngestionRunSummary | null;
+  modelVersion: ScoringModelVersion;
+  timestamp: string;
+}
+
+export interface IngestionPreviewRequest {
+  items?: RedditReadonlyInput[];
+}
+
+export interface IngestionPreviewResponse extends ApiOkResponse {
+  source: ApiSource;
+  config: ReadonlyIngestionConfig;
+  runSummary: IngestionRunSummary;
+  signals: QueueSignal[];
+  rejected: ReadonlyIngestionRejection[];
+}
+
+export type IngestionSeedResponse = IngestionPreviewResponse & {
+  signalCount: number;
+};
+
+export interface IngestionResetResult {
+  source: ApiSource;
+  signalCount: number;
+  resetCount: number;
+}
+
+export interface IngestionResetResponse extends ApiOkResponse {
+  source: ApiSource;
+  config: ReadonlyIngestionConfig;
+  signalCount: number;
+  resetCount: number;
+}

@@ -3,12 +3,14 @@ import { DEMO_QUEUE_SIGNALS } from './demoSignals';
 import type {
   ClusterSummary,
   ConfidenceLabel,
+  IngestionProvenance,
   IncidentPriority,
   PriorityScore,
   QueueIncident,
   QueueSignal,
   ScoreFactor,
   ScoringModelVersion,
+  SignalSource,
 } from './types';
 
 export const SCORING_MODEL_VERSION: ScoringModelVersion =
@@ -26,11 +28,20 @@ export interface IncidentClusterDraft {
 
 export interface DemoScoringPreview {
   modelVersion: ScoringModelVersion;
+  signalSource: SignalSource;
+  runId?: string;
   signalsProcessed: number;
   clustersFormed: number;
   duplicateSignalsCollapsed: number;
   averageScore: number;
   incidents: QueueIncident[];
+}
+
+export interface MaterializeClusterOptions {
+  signalSource?: SignalSource;
+  runId?: string;
+  subredditName?: string;
+  acceptedAt?: string;
 }
 
 interface ClusteringOptions {
@@ -394,6 +405,12 @@ export const scoreIncidentCluster = (
   const confidenceContribution =
     confidenceLabel === 'high' ? 8 : confidenceLabel === 'medium' ? 5 : 2;
   const finalScore = clampScore(score + confidenceContribution);
+  const hasPlaytestSignal = cluster.signals.some(
+    (signal) => signal.source === 'playtest-readonly',
+  );
+  const signalLabel = hasPlaytestSignal
+    ? 'read-only playtest signals'
+    : 'safe demo signals';
 
   const factors = [
     factor(
@@ -402,7 +419,7 @@ export const scoreIncidentCluster = (
       cluster.signals.length,
       4.5,
       reportVolume,
-      `${cluster.signals.length} synthetic report-like signals landed in this cluster.`,
+      `${cluster.signals.length} ${signalLabel} landed in this cluster.`,
     ),
     factor(
       'queue-age',
@@ -410,7 +427,7 @@ export const scoreIncidentCluster = (
       cluster.timeWindowMinutes,
       0.33,
       queueAge,
-      `The cluster spans ${cluster.timeWindowMinutes} minutes of demo queue activity.`,
+      `The cluster spans ${cluster.timeWindowMinutes} minutes of queue activity.`,
     ),
     factor(
       'related-items',
@@ -418,7 +435,7 @@ export const scoreIncidentCluster = (
       cluster.uniqueItemCount,
       5,
       relatedItems,
-      `${cluster.uniqueItemCount} unique demo queue items can be reviewed together.`,
+      `${cluster.uniqueItemCount} unique queue items can be reviewed together.`,
     ),
     factor(
       'cluster-density',
@@ -483,35 +500,128 @@ const clusterSummary = (cluster: IncidentClusterDraft): ClusterSummary => ({
 const baseIncidentForCluster = (
   cluster: IncidentClusterDraft,
   baseIncidents: readonly QueueIncident[],
-): QueueIncident => {
+): QueueIncident | undefined => {
   const primarySubject = subjectKey(cluster.signals);
-  const fallbackIncident = DEMO_INCIDENTS[0];
-
-  if (!fallbackIncident) {
-    throw new Error('Queue Sentinel requires at least one demo incident.');
-  }
 
   return (
     baseIncidents.find((incident) => incident.id === primarySubject) ??
-    DEMO_INCIDENTS.find((incident) => incident.id === primarySubject) ??
-    fallbackIncident
+    DEMO_INCIDENTS.find((incident) => incident.id === primarySubject)
   );
+};
+
+const signalSourceForCluster = (
+  cluster: IncidentClusterDraft,
+  options: MaterializeClusterOptions,
+): SignalSource => {
+  return (
+    options.signalSource ??
+    cluster.signals.find((signal) => signal.source)?.source ??
+    'synthetic-demo'
+  );
+};
+
+const sourceLabel = (signalSource: SignalSource) => {
+  if (signalSource === 'playtest-readonly') {
+    return 'read-only playtest signals';
+  }
+
+  if (signalSource === 'fallback') {
+    return 'fallback signals';
+  }
+
+  return 'safe demo signals';
+};
+
+const provenanceForCluster = (
+  cluster: IncidentClusterDraft,
+  options: MaterializeClusterOptions,
+): IngestionProvenance => {
+  const firstSubreddit = cluster.signals.find((signal) => signal.subredditName)
+    ?.subredditName;
+  const provenance: IngestionProvenance = {
+    source: signalSourceForCluster(cluster, options),
+    signalIds: cluster.signals.map((signal) => signal.id),
+  };
+
+  if (options.runId) {
+    provenance.runId = options.runId;
+  }
+
+  const subredditName = options.subredditName ?? firstSubreddit;
+
+  if (subredditName) {
+    provenance.subredditName = subredditName;
+  }
+
+  if (options.acceptedAt) {
+    provenance.acceptedAt = options.acceptedAt;
+  }
+
+  return provenance;
+};
+
+const generatedIncidentForCluster = (
+  cluster: IncidentClusterDraft,
+  firstSignal: QueueSignal,
+  lastSignal: QueueSignal,
+  options: MaterializeClusterOptions,
+): QueueIncident => {
+  const provenance = provenanceForCluster(cluster, options);
+  const subredditLabel = provenance.subredditName
+    ? `r/${provenance.subredditName}`
+    : 'the configured playtest subreddit';
+  const userContextSummary =
+    firstSignal.safeExcerpt ??
+    `Read-only metadata from ${subredditLabel} was normalized without storing post or comment body text.`;
+
+  return {
+    id: `inc-${cluster.clusterId}`,
+    priority: 'low',
+    status: 'open',
+    title: `${cluster.suspectedRuleArea} pattern from read-only signals`,
+    itemType: firstSignal.itemType,
+    reportCount: cluster.signals.length,
+    queueAgeMinutes: cluster.timeWindowMinutes,
+    suspectedRuleArea: cluster.suspectedRuleArea,
+    whySurfaced: [],
+    userContextSummary,
+    relatedItemCount: cluster.uniqueItemCount,
+    rationaleDraft:
+      'Read-only playtest metadata was grouped for moderator review context only.',
+    createdAt: firstSignal.createdAt,
+    updatedAt: lastSignal.receivedAt,
+    tags: unique([
+      'playtest-readonly',
+      `signals-${cluster.signals.length}`,
+      slug(cluster.suspectedRuleArea),
+    ]),
+    ingestionProvenance: provenance,
+  };
 };
 
 export const materializeClusteredIncidents = (
   clusters: readonly IncidentClusterDraft[],
   baseIncidents: readonly QueueIncident[] = DEMO_INCIDENTS,
+  options: MaterializeClusterOptions = {},
 ): QueueIncident[] => {
   return clusters
     .map((cluster) => {
-      const baseIncident = baseIncidentForCluster(cluster, baseIncidents);
-      const score = scoreIncidentCluster(cluster, baseIncident.status);
       const firstSignal = cluster.signals[0];
       const lastSignal = cluster.signals[cluster.signals.length - 1];
 
       if (!firstSignal || !lastSignal) {
         throw new Error('Cannot materialize an empty incident cluster.');
       }
+
+      const baseIncident =
+        baseIncidentForCluster(cluster, baseIncidents) ??
+        generatedIncidentForCluster(cluster, firstSignal, lastSignal, options);
+      const score = scoreIncidentCluster(cluster, baseIncident.status);
+      const signalSource = signalSourceForCluster(cluster, options);
+      const provenance = provenanceForCluster(cluster, options);
+      const signalCountLabel = `${cluster.signals.length} ${sourceLabel(
+        signalSource,
+      )}`;
 
       return {
         ...baseIncident,
@@ -531,12 +641,14 @@ export const materializeClusteredIncidents = (
         recommendedReviewAction: `Review this cluster first if its score of ${score.score} is the highest active triage signal.`,
         confidenceLabel: score.confidenceLabel,
         rationaleDraft:
-          `Deterministic Sprint 3 scoring ranked this as ${score.priority} from ${cluster.signals.length} safe demo signals. Use the factors as review context only; Queue Sentinel is not making an enforcement decision.`,
+          `Deterministic Sprint 4 scoring ranked this as ${score.priority} from ${signalCountLabel}. Use the factors as review context only; Queue Sentinel is not making an enforcement decision.`,
         clusterSummary: clusterSummary(cluster),
         priorityScore: score,
+        ingestionProvenance: provenance,
         tags: unique([
           ...(baseIncident.tags ?? []),
-          'sprint-3-scored',
+          'sprint-4-scored',
+          signalSource,
           `signals-${cluster.signals.length}`,
         ]),
       } satisfies QueueIncident;
@@ -551,17 +663,23 @@ export const materializeClusteredIncidents = (
 export const buildDemoScoringPreview = (
   baseIncidents: readonly QueueIncident[] = DEMO_INCIDENTS,
   signals: readonly QueueSignal[] = DEMO_QUEUE_SIGNALS,
+  options: MaterializeClusterOptions = {},
 ): DemoScoringPreview => {
   const clusters = clusterQueueSignals(signals);
-  const incidents = materializeClusteredIncidents(clusters, baseIncidents);
+  const signalSource = options.signalSource ?? 'synthetic-demo';
+  const incidents = materializeClusteredIncidents(clusters, baseIncidents, {
+    ...options,
+    signalSource,
+  });
   const totalScore = incidents.reduce(
     (total, incident) => total + (incident.priorityScore?.score ?? 0),
     0,
   );
   const signalsProcessed = signals.filter(isValidSignal).length;
 
-  return {
+  const preview: DemoScoringPreview = {
     modelVersion: SCORING_MODEL_VERSION,
+    signalSource,
     signalsProcessed,
     clustersFormed: clusters.length,
     duplicateSignalsCollapsed: Math.max(signalsProcessed - clusters.length, 0),
@@ -569,6 +687,12 @@ export const buildDemoScoringPreview = (
       incidents.length === 0 ? 0 : Math.round(totalScore / incidents.length),
     incidents,
   };
+
+  if (options.runId) {
+    preview.runId = options.runId;
+  }
+
+  return preview;
 };
 
 export const SCORED_DEMO_INCIDENTS = buildDemoScoringPreview().incidents;

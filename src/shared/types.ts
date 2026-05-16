@@ -10,6 +10,10 @@ export type ConfidenceLabel = 'low' | 'medium' | 'high';
 
 export type ScoringModelVersion = 'sprint-3-deterministic-v1';
 
+export type SignalSource = 'synthetic-demo' | 'playtest-readonly' | 'fallback';
+
+export type IngestionMode = 'disabled' | 'demo-only' | 'playtest-readonly';
+
 export type IncidentSortKey =
   | 'priority'
   | 'queueAge'
@@ -37,6 +41,9 @@ export interface QueueSignal {
   createdAt: string;
   receivedAt: string;
   tags?: string[];
+  source?: SignalSource;
+  subredditName?: string;
+  safeExcerpt?: string;
 }
 
 export interface ScoreFactor {
@@ -66,6 +73,16 @@ export interface ClusterSummary {
   representativeSignalIds: string[];
 }
 
+export type SignalStoreMode = 'redis' | 'memory' | 'fallback';
+
+export interface IngestionProvenance {
+  source: SignalSource;
+  runId?: string;
+  subredditName?: string;
+  acceptedAt?: string;
+  signalIds: string[];
+}
+
 export interface QueueIncident {
   id: string;
   priority: IncidentPriority;
@@ -88,6 +105,7 @@ export interface QueueIncident {
   timeline?: IncidentTimelineEvent[];
   clusterSummary?: ClusterSummary;
   priorityScore?: PriorityScore;
+  ingestionProvenance?: IngestionProvenance;
 }
 
 export interface IncidentFilters {
@@ -116,6 +134,48 @@ export interface ScoringWorkbenchMetrics {
   duplicateSignalsCollapsed: number;
   highPriorityShare: number;
   modelVersion: ScoringModelVersion;
+}
+
+export interface ReadonlyIngestionConfig {
+  mode: IngestionMode;
+  storeMode: SignalStoreMode;
+  allowedSubredditNames: string[];
+  enabled: boolean;
+  requiredEnvPresent: boolean;
+  allowlistConfigured: boolean;
+}
+
+export interface IngestionRunSummary {
+  runId: string;
+  mode: IngestionMode;
+  source: SignalSource;
+  storeMode: SignalStoreMode;
+  acceptedSignals: number;
+  rejectedSignals: number;
+  reasons: string[];
+  startedAt: string;
+  finishedAt: string;
+}
+
+export interface ReadonlyIngestionRejection {
+  itemId?: string;
+  subredditName?: string;
+  reason: string;
+}
+
+export interface RedditReadonlyInput {
+  itemId: string;
+  itemType: QueueItemType;
+  subredditName: string;
+  authorKey?: string;
+  threadKey?: string;
+  domainKey?: string;
+  suspectedRuleArea?: string;
+  reportReason?: string;
+  createdAt: string;
+  receivedAt: string;
+  safeExcerpt?: string;
+  tags?: string[];
 }
 
 export interface PriorityDistributionItem {

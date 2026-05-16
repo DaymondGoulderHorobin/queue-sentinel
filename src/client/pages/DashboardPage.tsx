@@ -2,8 +2,12 @@ import { MetricCard } from '../components/MetricCard';
 import { SignalPill } from '../components/SignalPill';
 import { StatusBadge } from '../components/StatusBadge';
 import { APP_NAME, SPRINT_LABEL } from '../../shared/constants';
-import type { ApiSource, ScoringPreviewResponse } from '../../shared/apiTypes';
-import type { QueueIncident } from '../../shared/types';
+import type {
+  ApiSource,
+  IngestionStatusResponse,
+  ScoringPreviewResponse,
+} from '../../shared/apiTypes';
+import type { QueueIncident, SignalSource } from '../../shared/types';
 import {
   getPriorityDistribution,
   getRecommendedReviewFocus,
@@ -17,6 +21,7 @@ interface DashboardPageProps {
   dataStatus: 'loading' | ApiSource;
   errorMessage: string | null;
   incidents: QueueIncident[];
+  ingestionStatus: IngestionStatusResponse;
   isLoading: boolean;
   isMutating: boolean;
   onInspectIncident: (incidentId: string) => void;
@@ -29,6 +34,7 @@ export const DashboardPage = ({
   dataStatus,
   errorMessage,
   incidents,
+  ingestionStatus,
   isLoading,
   isMutating,
   onInspectIncident,
@@ -52,6 +58,16 @@ export const DashboardPage = ({
         : dataStatus === 'fallback'
           ? 'Fallback demo data'
           : 'Loading data';
+  const activeSignalSource: SignalSource =
+    incidents.find((incident) => incident.ingestionProvenance)
+      ?.ingestionProvenance?.source ??
+    scoringPreview.signalSource;
+  const sourceLabel =
+    activeSignalSource === 'playtest-readonly'
+      ? 'Playtest read-only'
+      : activeSignalSource === 'fallback'
+        ? 'Fallback'
+        : 'Synthetic demo';
 
   return (
     <section className="page-stack" aria-labelledby="dashboard-title">
@@ -60,8 +76,9 @@ export const DashboardPage = ({
           <p className="eyebrow">Deterministic scoring active</p>
           <h2 id="dashboard-title">{APP_NAME}</h2>
           <p>
-            Synthetic demo signals are clustered and scored with an explainable
-            deterministic model for faster human moderator triage.
+            Demo and allowed read-only playtest signals are clustered and scored
+            with an explainable deterministic model for faster human moderator
+            triage.
           </p>
           <div className="hero-badges">
             <StatusBadge tone="build">{SPRINT_LABEL}</StatusBadge>
@@ -69,6 +86,10 @@ export const DashboardPage = ({
               {dataLabel}
             </StatusBadge>
             <StatusBadge tone="build">{scoringPreview.modelVersion}</StatusBadge>
+            <StatusBadge tone="build">{sourceLabel}</StatusBadge>
+            <StatusBadge tone="build">
+              {ingestionStatus.config.mode}
+            </StatusBadge>
           </div>
         </div>
         <div className="review-focus">
@@ -100,7 +121,7 @@ export const DashboardPage = ({
       <div className="dashboard-grid dashboard-grid--six">
         <MetricCard
           label="Signals Processed"
-          meta="Safe synthetic queue signals"
+          meta={sourceLabel}
           value={String(scoringPreview.signalsProcessed)}
         />
         <MetricCard
