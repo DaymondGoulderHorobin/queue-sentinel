@@ -8,7 +8,7 @@ The eventual product will help moderators collapse duplicate reports into explai
 
 - Sprint: `4 - Read-only Ingestion and Playtest Hardening`
 - Branch: `sprint-4-readonly-ingestion-playtest-hardening`
-- Base: stacked on `sprint-3-clustering-priority-scoring` until earlier sprint PRs are merged into `main`
+- Base: `main`
 - Devvit pattern: Devvit Web with `src/client`, `src/server`, and `src/shared`
 - Data: safe synthetic queue signals plus opt-in allowlisted playtest metadata
 - Moderation actions: disabled placeholders only; scoring output is triage context, not an enforcement decision
@@ -117,4 +117,4 @@ For ChatGPT review, include:
 - Changed file tree.
 - Output from `npm install`, `npm run build`, `npm run check`, and CI.
 - Screenshot or short description of Dashboard, Incidents, Case Card, Metrics, Settings, ingestion controls, and recompute behavior.
-- Notes on store mode, read-only ingestion mode, browser-shell fallback behavior, stacked Sprint 3 base, and any Devvit playtest limitations.
+- Notes on store mode, read-only ingestion mode, browser-shell fallback behavior, main-base status, and any Devvit playtest limitations.

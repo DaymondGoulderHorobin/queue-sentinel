@@ -12,7 +12,7 @@ Use this checklist when asking ChatGPT to review Queue Sentinel pull requests.
 - Screenshot or concise description of Dashboard, Incidents, Case Card, Metrics, Settings, ingestion controls, and recompute scoring.
 - Store mode notes: Redis, memory fallback, or browser-shell fallback.
 - Read-only ingestion mode, allowlist, and signal store notes.
-- Branch/base note when Sprint 4 is stacked on Sprint 3.
+- Branch/base note confirming Sprint 4 targets `main`.
 - Any Devvit warnings or local playtest limitations.
 
 ## Acceptance Criteria
@@ -31,7 +31,7 @@ Use this checklist when asking ChatGPT to review Queue Sentinel pull requests.
 - Recompute route persists only Queue Sentinel incident state and rejects external scoring inputs.
 - Clustering, scoring, normalizer, ingestion routes, and signal stores are deterministic and covered by tests.
 - No real approve, remove, lock, ban, Reddit escalation, webhook, AI, external integration, notification, or automatic enforcement actions are active.
-- README documents install, run, build, test, Sprint 4 limitations, ingestion flags, and stacked base if applicable.
+- README documents install, run, build, test, Sprint 4 limitations, ingestion flags, and main-base status.
 - PR remains focused on read-only ingestion hardening, scoring integration, API, UI, docs, and tests.
 
 ## Manual Review

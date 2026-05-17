@@ -36,4 +36,4 @@ QUEUE_SENTINEL_TEST_SUBREDDIT=queue_sentinel_lab
 
 ## Branch Note
 
-Sprint 4 is stacked on `sprint-3-clustering-priority-scoring` because earlier sprint PRs are still in-flight. Rebase onto `main` after Sprint 2 and Sprint 3 land if needed.
+Sprint 4 now targets `main` directly and builds on the merged Sprint 3 foundation.

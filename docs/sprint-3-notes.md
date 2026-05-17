@@ -26,7 +26,7 @@ Sprint 3 introduces Queue Sentinel's first deterministic intelligence layer. It 
 
 ## Branch Note
 
-Sprint 3 was started from `sprint-2-persistence-api-demo-seeding` because Sprint 2 was not merged into `main` locally when this work began. Rebase onto `main` after Sprint 2 lands if needed.
+Sprint 3 originally started from `sprint-2-persistence-api-demo-seeding` during active development. Sprint 2 and Sprint 3 are now part of `main`.
 
 ## Sprint 4 Handoff
 
