@@ -1,4 +1,7 @@
-import type { ScoringPreviewResponse } from '../../shared/apiTypes';
+import type {
+  IngestionStatusResponse,
+  ScoringPreviewResponse,
+} from '../../shared/apiTypes';
 
 const settingsSections = [
   {
@@ -10,8 +13,8 @@ const settingsSections = [
     description: 'Tune report volume, age, and related-item influence.',
   },
   {
-    title: 'Escalation settings',
-    description: 'Prepare handoff labels without enabling enforcement.',
+    title: 'Review routing',
+    description: 'Prepare internal labels without external handoff.',
   },
   {
     title: 'Demo mode',
@@ -23,11 +26,16 @@ interface SettingsPageProps {
   dataStatus: string;
   errorMessage: string | null;
   incidentCount: number;
+  ingestionStatus: IngestionStatusResponse;
   isMutating: boolean;
+  onPreviewIngestion: () => void;
   onRefresh: () => void;
+  onRefreshIngestion: () => void;
   onRecomputeScoring: () => void;
   onResetDemo: () => void;
+  onResetPlaytest: () => void;
   onSeedDemo: () => void;
+  onSeedPlaytest: () => void;
   scoringPreview: ScoringPreviewResponse;
 }
 
@@ -35,13 +43,25 @@ export const SettingsPage = ({
   dataStatus,
   errorMessage,
   incidentCount,
+  ingestionStatus,
   isMutating,
+  onPreviewIngestion,
   onRefresh,
+  onRefreshIngestion,
   onRecomputeScoring,
   onResetDemo,
+  onResetPlaytest,
   onSeedDemo,
+  onSeedPlaytest,
   scoringPreview,
 }: SettingsPageProps) => {
+  const playtestReady =
+    ingestionStatus.config.enabled &&
+    ingestionStatus.config.mode === 'playtest-readonly';
+  const allowedSubreddits =
+    ingestionStatus.config.allowedSubredditNames.join(', ') || 'None';
+  const lastRun = ingestionStatus.lastRun;
+
   return (
     <section className="page-stack" aria-labelledby="settings-title">
       <div className="page-heading">
@@ -84,11 +104,75 @@ export const SettingsPage = ({
 
       <article className="demo-panel">
         <div>
-          <p className="eyebrow">Deterministic scoring controls</p>
-          <h3>Recompute demo clustering and priority scores</h3>
+          <p className="eyebrow">Read-only ingestion controls</p>
+          <h3>Playtest signal intake</h3>
           <p>
-            This uses synthetic Sprint 3 demo signals only. It does not ingest
-            Reddit data, call AI, notify anyone, or perform moderation actions.
+            Playtest intake accepts only metadata from an allowlisted private
+            test subreddit and writes to the signal store, not moderation state.
+          </p>
+        </div>
+        <div className="demo-panel__meta">
+          <span>
+            Mode <strong>{ingestionStatus.config.mode}</strong>
+          </span>
+          <span>
+            Store <strong>{ingestionStatus.config.storeMode}</strong>
+          </span>
+          <span>
+            Allowed <strong>{allowedSubreddits}</strong>
+          </span>
+          <span>
+            Signals <strong>{ingestionStatus.signalCount}</strong>
+          </span>
+          <span>
+            Accepted <strong>{lastRun?.acceptedSignals ?? 0}</strong>
+          </span>
+          <span>
+            Rejected <strong>{lastRun?.rejectedSignals ?? 0}</strong>
+          </span>
+          <span>
+            Last run{' '}
+            <strong>
+              {lastRun ? new Date(lastRun.finishedAt).toLocaleTimeString() : 'None'}
+            </strong>
+          </span>
+        </div>
+        <div className="demo-actions">
+          <button disabled={isMutating} onClick={onRefreshIngestion} type="button">
+            Refresh status
+          </button>
+          <button
+            disabled={isMutating || !playtestReady}
+            onClick={onPreviewIngestion}
+            type="button"
+          >
+            Preview ingestion
+          </button>
+          <button
+            disabled={isMutating || !playtestReady}
+            onClick={onSeedPlaytest}
+            type="button"
+          >
+            Seed playtest signals
+          </button>
+          <button
+            disabled={isMutating || !playtestReady}
+            onClick={onResetPlaytest}
+            type="button"
+          >
+            Reset playtest signals
+          </button>
+        </div>
+      </article>
+
+      <article className="demo-panel">
+        <div>
+          <p className="eyebrow">Deterministic scoring controls</p>
+          <h3>Recompute clustering and priority scores</h3>
+          <p>
+            This scores synthetic demo signals or accepted read-only playtest
+            signals. It does not call AI, notify anyone, or perform moderation
+            actions.
           </p>
         </div>
         <div className="demo-panel__meta">
@@ -96,15 +180,15 @@ export const SettingsPage = ({
             Model <strong>{scoringPreview.modelVersion}</strong>
           </span>
           <span>
-            Signals <strong>{scoringPreview.signalsProcessed}</strong>
+            Clusters <strong>{scoringPreview.clustersFormed}</strong>
           </span>
           <span>
-            Clusters <strong>{scoringPreview.clustersFormed}</strong>
+            Source <strong>{scoringPreview.signalSource}</strong>
           </span>
         </div>
         <div className="demo-actions">
           <button disabled={isMutating} onClick={onRecomputeScoring} type="button">
-            {isMutating ? 'Recomputing...' : 'Recompute demo scoring'}
+            {isMutating ? 'Recomputing...' : 'Recompute scored incidents'}
           </button>
         </div>
       </article>

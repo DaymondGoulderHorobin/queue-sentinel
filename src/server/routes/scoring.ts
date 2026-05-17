@@ -2,11 +2,14 @@ import { Hono } from 'hono';
 
 import { buildDemoScoringPreview } from '../services/incidentMaterializer';
 import type { IncidentStore } from '../services/incidentStore';
+import type { QueueSignalStore } from '../services/queueSignalStore';
 import type {
   ApiErrorResponse,
   ScoringPreviewResponse,
   ScoringRecomputeResponse,
 } from '../../shared/apiTypes';
+import { DEMO_QUEUE_SIGNALS } from '../../shared/demoSignals';
+import type { QueueIncident } from '../../shared/types';
 
 const errorResponse = (message: string): ApiErrorResponse => ({
   status: 'error',
@@ -23,13 +26,41 @@ const readOptionalBody = async (request: Request) => {
   return JSON.parse(text) as Record<string, unknown>;
 };
 
-export const createScoringRoute = (store: IncidentStore) => {
+const buildScoringPreview = async (
+  store: IncidentStore,
+  signalStore: QueueSignalStore,
+) => {
+  const [existingIncidents, playtestSignals, lastRun] = await Promise.all([
+    store.listIncidents(),
+    signalStore.listSignals(),
+    signalStore.getLastRunSummary(),
+  ]);
+  const hasPlaytestSignals = playtestSignals.length > 0;
+  const signals = hasPlaytestSignals ? playtestSignals : DEMO_QUEUE_SIGNALS;
+  const firstSubreddit = playtestSignals.find((signal) => signal.subredditName)
+    ?.subredditName;
+
+  return buildDemoScoringPreview(
+    existingIncidents as readonly QueueIncident[],
+    signals,
+    {
+      signalSource: hasPlaytestSignals ? 'playtest-readonly' : 'synthetic-demo',
+      runId: hasPlaytestSignals ? lastRun?.runId : undefined,
+      subredditName: firstSubreddit,
+      acceptedAt: hasPlaytestSignals ? lastRun?.finishedAt : undefined,
+    },
+  );
+};
+
+export const createScoringRoute = (
+  store: IncidentStore,
+  signalStore: QueueSignalStore,
+) => {
   const scoringRoute = new Hono();
 
   scoringRoute.get('/preview', async (context) => {
     try {
-      const existingIncidents = await store.listIncidents();
-      const preview = buildDemoScoringPreview(existingIncidents);
+      const preview = await buildScoringPreview(store, signalStore);
 
       return context.json<ScoringPreviewResponse>({
         status: 'ok',
@@ -48,25 +79,21 @@ export const createScoringRoute = (store: IncidentStore) => {
 
       if (Object.keys(body).length > 0) {
         return context.json(
-          errorResponse('External scoring inputs are not accepted in Sprint 3.'),
+          errorResponse('External scoring inputs are not accepted in Sprint 4.'),
           400,
         );
       }
 
-      const existingIncidents = await store.listIncidents();
-      const preview = buildDemoScoringPreview(existingIncidents);
+      const preview = await buildScoringPreview(store, signalStore);
 
       for (const incident of preview.incidents) {
         await store.upsertIncident(incident);
       }
 
-      const incidents = await store.listIncidents();
-
       return context.json<ScoringRecomputeResponse>({
         status: 'ok',
         source: store.mode,
         ...preview,
-        incidents: [...incidents],
       });
     } catch (error) {
       console.error('Failed to recompute deterministic scoring', error);

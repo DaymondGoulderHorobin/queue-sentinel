@@ -26,6 +26,7 @@ export const App = () => {
             dataStatus={workbench.dataStatus}
             errorMessage={workbench.errorMessage}
             incidents={workbench.incidents}
+            ingestionStatus={workbench.ingestionStatus}
             isLoading={workbench.isLoading}
             isMutating={workbench.isMutating}
             onInspectIncident={openCaseCard}
@@ -58,18 +59,29 @@ export const App = () => {
           />
         );
       case 'metrics':
-        return <MetricsPage incidents={workbench.incidents} />;
+        return (
+          <MetricsPage
+            incidents={workbench.incidents}
+            ingestionStatus={workbench.ingestionStatus}
+            scoringPreview={workbench.scoringPreview}
+          />
+        );
       case 'settings':
         return (
           <SettingsPage
             dataStatus={workbench.dataStatus}
             errorMessage={workbench.errorMessage}
             incidentCount={workbench.incidents.length}
+            ingestionStatus={workbench.ingestionStatus}
             isMutating={workbench.isMutating}
+            onPreviewIngestion={workbench.previewIngestion}
             onRefresh={workbench.refreshIncidents}
+            onRefreshIngestion={workbench.refreshIngestionStatus}
             onRecomputeScoring={workbench.recomputeScoring}
             onResetDemo={workbench.resetDemoQueue}
+            onResetPlaytest={workbench.resetPlaytestQueue}
             onSeedDemo={workbench.seedDemoQueue}
+            onSeedPlaytest={workbench.seedPlaytestQueue}
             scoringPreview={workbench.scoringPreview}
           />
         );
@@ -79,6 +91,7 @@ export const App = () => {
             dataStatus={workbench.dataStatus}
             errorMessage={workbench.errorMessage}
             incidents={workbench.incidents}
+            ingestionStatus={workbench.ingestionStatus}
             isLoading={workbench.isLoading}
             isMutating={workbench.isMutating}
             onInspectIncident={openCaseCard}

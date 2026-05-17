@@ -1,18 +1,22 @@
 import { MetricCard } from '../components/MetricCard';
+import type {
+  IngestionStatusResponse,
+  ScoringPreviewResponse,
+} from '../../shared/apiTypes';
 import type { QueueIncident } from '../../shared/types';
-import {
-  getPriorityDistribution,
-  getScoringWorkbenchMetrics,
-  getWorkbenchMetrics,
-} from '../../shared/workbench';
+import { getPriorityDistribution } from '../../shared/workbench';
 
 interface MetricsPageProps {
   incidents: QueueIncident[];
+  ingestionStatus: IngestionStatusResponse;
+  scoringPreview: ScoringPreviewResponse;
 }
 
-export const MetricsPage = ({ incidents }: MetricsPageProps) => {
-  const metrics = getWorkbenchMetrics(incidents);
-  const scoringMetrics = getScoringWorkbenchMetrics(incidents);
+export const MetricsPage = ({
+  incidents,
+  ingestionStatus,
+  scoringPreview,
+}: MetricsPageProps) => {
   const distribution = getPriorityDistribution(incidents);
   const maxDistributionCount = Math.max(
     ...distribution.map((item) => item.count),
@@ -31,35 +35,34 @@ export const MetricsPage = ({ incidents }: MetricsPageProps) => {
       <div className="dashboard-grid dashboard-grid--six">
         <MetricCard
           label="Signals Processed"
-          meta={scoringMetrics.modelVersion}
-          value={String(scoringMetrics.signalsProcessed)}
+          meta={scoringPreview.modelVersion}
+          value={String(scoringPreview.signalsProcessed)}
+        />
+        <MetricCard
+          label="Accepted Playtest"
+          meta={ingestionStatus.config.mode}
+          value={String(ingestionStatus.lastRun?.acceptedSignals ?? 0)}
+        />
+        <MetricCard
+          label="Rejected Playtest"
+          meta="Read-only guardrails"
+          value={String(ingestionStatus.lastRun?.rejectedSignals ?? 0)}
         />
         <MetricCard
           label="Clusters Formed"
           meta="Final incident groups"
-          value={String(scoringMetrics.clustersFormed)}
+          value={String(scoringPreview.clustersFormed)}
         />
         <MetricCard
           label="Average Score"
           meta="Across scored incidents"
-          value={String(scoringMetrics.averageScore)}
-        />
-        <MetricCard
-          label="Critical or High"
-          meta="Scored priority share"
-          tone="urgent"
-          value={`${scoringMetrics.highPriorityShare}%`}
+          value={String(scoringPreview.averageScore)}
         />
         <MetricCard
           label="Signals Collapsed"
           meta="Beyond final clusters"
           tone="success"
-          value={String(scoringMetrics.duplicateSignalsCollapsed)}
-        />
-        <MetricCard
-          label="Rule Areas Surfaced"
-          meta="Distinct demo categories"
-          value={String(metrics.ruleAreasSurfaced)}
+          value={String(scoringPreview.duplicateSignalsCollapsed)}
         />
       </div>
 
