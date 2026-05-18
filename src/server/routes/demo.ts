@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
 
 import { resetDemoQueue, seedDemoQueue } from '../services/demoSeed';
+import type { AuditLogStore } from '../services/auditLogStore';
 import type { IncidentStore } from '../services/incidentStore';
+import type { ModeratorAuthService } from '../services/moderatorAuth';
 import type { ApiErrorResponse, SeedDemoResponse } from '../../shared/apiTypes';
 
 const errorResponse = (message: string): ApiErrorResponse => ({
@@ -9,12 +11,42 @@ const errorResponse = (message: string): ApiErrorResponse => ({
   message,
 });
 
-export const createDemoRoute = (store: IncidentStore) => {
+export const createDemoRoute = (
+  store: IncidentStore,
+  moderatorAuth: ModeratorAuthService,
+  auditStore: AuditLogStore,
+) => {
   const demoRoute = new Hono();
 
   demoRoute.post('/seed', async (context) => {
     try {
+      const authorization = await moderatorAuth.guardMutation();
+
+      if (!authorization.allowed) {
+        await auditStore.append({
+          operation: 'demo.seed',
+          outcome: 'denied',
+          sourceRoute: '/api/demo/seed',
+          storeMode: store.mode,
+          actor: authorization.actor,
+        });
+
+        return context.json(errorResponse(authorization.message), 403);
+      }
+
       const { result, incidents } = await seedDemoQueue(store);
+
+      await auditStore.append({
+        operation: 'demo.seed',
+        outcome: 'completed',
+        sourceRoute: '/api/demo/seed',
+        storeMode: store.mode,
+        actor: authorization.actor,
+        counts: {
+          incidents: incidents.length,
+          overwritten: result.overwritten,
+        },
+      });
 
       return context.json<SeedDemoResponse>({
         status: 'ok',
@@ -29,7 +61,33 @@ export const createDemoRoute = (store: IncidentStore) => {
 
   demoRoute.post('/reset', async (context) => {
     try {
+      const authorization = await moderatorAuth.guardMutation();
+
+      if (!authorization.allowed) {
+        await auditStore.append({
+          operation: 'demo.reset',
+          outcome: 'denied',
+          sourceRoute: '/api/demo/reset',
+          storeMode: store.mode,
+          actor: authorization.actor,
+        });
+
+        return context.json(errorResponse(authorization.message), 403);
+      }
+
       const { result, incidents } = await resetDemoQueue(store);
+
+      await auditStore.append({
+        operation: 'demo.reset',
+        outcome: 'completed',
+        sourceRoute: '/api/demo/reset',
+        storeMode: store.mode,
+        actor: authorization.actor,
+        counts: {
+          incidents: incidents.length,
+          overwritten: result.overwritten,
+        },
+      });
 
       return context.json<SeedDemoResponse>({
         status: 'ok',

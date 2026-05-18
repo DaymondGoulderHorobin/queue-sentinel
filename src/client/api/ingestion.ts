@@ -45,17 +45,17 @@ export const getIngestionStatus = async () => {
   return await fetchJson<IngestionStatusResponse>('/api/ingestion/status');
 };
 
-export const previewReadonlyIngestion = async () => {
+export const previewReadonlyIngestion = async (fixturePackId?: string) => {
   return await fetchJson<IngestionPreviewResponse>('/api/ingestion/preview', {
     method: 'POST',
-    body: JSON.stringify({}),
+    body: JSON.stringify({ fixturePackId }),
   });
 };
 
-export const seedPlaytestSignals = async () => {
+export const seedPlaytestSignals = async (fixturePackId?: string) => {
   return await fetchJson<IngestionSeedResponse>('/api/ingestion/playtest-seed', {
     method: 'POST',
-    body: JSON.stringify({}),
+    body: JSON.stringify({ fixturePackId }),
   });
 };
 

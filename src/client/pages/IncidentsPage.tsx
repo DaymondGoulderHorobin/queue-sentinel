@@ -119,7 +119,7 @@ export const IncidentsPage = ({
           ) : (
             <EmptyState
               actionLabel="Reset filters"
-              message="No scored incidents match the current filter set. Clear filters to return to the full Sprint 4 queue."
+              message="No scored incidents match the current filter set. Clear filters to return to the full Sprint 5 queue."
               onAction={resetFilters}
               title="No incidents found"
             />

@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
 
+import type { AuditLogStore } from '../services/auditLogStore';
 import type { IncidentStore } from '../services/incidentStore';
+import type { ModeratorAuthService } from '../services/moderatorAuth';
 import type {
   ApiErrorResponse,
   IncidentDetailResponse,
@@ -83,7 +85,11 @@ const isSafeMetadataPatch = (value: unknown): value is IncidentMetadataPatch => 
   return true;
 };
 
-export const createIncidentsRoute = (store: IncidentStore) => {
+export const createIncidentsRoute = (
+  store: IncidentStore,
+  moderatorAuth: ModeratorAuthService,
+  auditStore: AuditLogStore,
+) => {
   const incidentsRoute = new Hono();
 
   incidentsRoute.get('/', async (context) => {
@@ -121,6 +127,20 @@ export const createIncidentsRoute = (store: IncidentStore) => {
   });
 
   incidentsRoute.patch('/:id/status', async (context) => {
+    const authorization = await moderatorAuth.guardMutation();
+
+    if (!authorization.allowed) {
+      await auditStore.append({
+        operation: 'incident.status.update',
+        outcome: 'denied',
+        sourceRoute: '/api/incidents/:id/status',
+        storeMode: store.mode,
+        actor: authorization.actor,
+      });
+
+      return context.json(errorResponse(authorization.message), 403);
+    }
+
     let body: IncidentStatusUpdateRequest;
 
     try {
@@ -142,6 +162,17 @@ export const createIncidentsRoute = (store: IncidentStore) => {
       return context.json(errorResponse('Incident not found.'), 404);
     }
 
+    await auditStore.append({
+      operation: 'incident.status.update',
+      outcome: 'completed',
+      sourceRoute: '/api/incidents/:id/status',
+      storeMode: store.mode,
+      actor: authorization.actor,
+      counts: {
+        incidents: 1,
+      },
+    });
+
     return context.json<IncidentStatusUpdateResponse>({
       status: 'ok',
       source: store.mode,
@@ -150,6 +181,20 @@ export const createIncidentsRoute = (store: IncidentStore) => {
   });
 
   incidentsRoute.patch('/:id/metadata', async (context) => {
+    const authorization = await moderatorAuth.guardMutation();
+
+    if (!authorization.allowed) {
+      await auditStore.append({
+        operation: 'incident.metadata.update',
+        outcome: 'denied',
+        sourceRoute: '/api/incidents/:id/metadata',
+        storeMode: store.mode,
+        actor: authorization.actor,
+      });
+
+      return context.json(errorResponse(authorization.message), 403);
+    }
+
     let body: IncidentMetadataUpdateRequest;
 
     try {
@@ -170,6 +215,18 @@ export const createIncidentsRoute = (store: IncidentStore) => {
     if (!incident) {
       return context.json(errorResponse('Incident not found.'), 404);
     }
+
+    await auditStore.append({
+      operation: 'incident.metadata.update',
+      outcome: 'completed',
+      sourceRoute: '/api/incidents/:id/metadata',
+      storeMode: store.mode,
+      actor: authorization.actor,
+      counts: {
+        incidents: 1,
+        fields: Object.keys(body.patch).length,
+      },
+    });
 
     return context.json<IncidentMetadataUpdateResponse>({
       status: 'ok',

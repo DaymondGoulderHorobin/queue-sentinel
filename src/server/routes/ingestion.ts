@@ -1,12 +1,14 @@
 import { Hono } from 'hono';
 
+import type { AuditLogStore } from '../services/auditLogStore';
 import { isReadonlyPlaytestEnabled } from '../services/ingestionConfig';
+import type { ModeratorAuthService } from '../services/moderatorAuth';
 import { normalizeReadonlyIngestion } from '../services/redditSignalNormalizer';
 import type { QueueSignalStore } from '../services/queueSignalStore';
-import { PLAYTEST_READONLY_INPUTS } from '../../shared/playtestInputs';
 import {
   SCORING_MODEL_VERSION,
 } from '../../shared/scoringEngine';
+import { getPlaytestFixturePack } from '../../shared/playtestFixturePacks';
 import type {
   ApiErrorResponse,
   IngestionPreviewRequest,
@@ -45,11 +47,34 @@ const disabledMessage =
 
 const itemsFromBody = (
   body: Record<string, unknown>,
-): { items?: readonly unknown[]; error?: string } => {
+): {
+  items?: readonly unknown[];
+  fixturePackId?: string;
+  fixturePackLabel?: string;
+  error?: string;
+} => {
   const maybeItems = (body as IngestionPreviewRequest).items;
+  const maybeFixturePackId = (body as IngestionPreviewRequest).fixturePackId;
+
+  if (
+    maybeFixturePackId !== undefined &&
+    typeof maybeFixturePackId !== 'string'
+  ) {
+    return { error: 'Fixture pack id must be a string.' };
+  }
 
   if (maybeItems === undefined) {
-    return { items: PLAYTEST_READONLY_INPUTS };
+    const fixturePack = getPlaytestFixturePack(maybeFixturePackId);
+
+    if (!fixturePack) {
+      return { error: 'Unknown playtest fixture pack.' };
+    }
+
+    return {
+      items: fixturePack.items,
+      fixturePackId: fixturePack.id,
+      fixturePackLabel: fixturePack.label,
+    };
   }
 
   if (!Array.isArray(maybeItems)) {
@@ -62,6 +87,8 @@ const itemsFromBody = (
 export const createIngestionRoute = (
   signalStore: QueueSignalStore,
   config: ReadonlyIngestionConfig,
+  moderatorAuth: ModeratorAuthService,
+  auditStore: AuditLogStore,
 ) => {
   const ingestionRoute = new Hono();
   const routeConfig: ReadonlyIngestionConfig = {
@@ -98,7 +125,7 @@ export const createIngestionRoute = (
       }
 
       const body = await readOptionalJson(context.req.raw);
-      const { items, error } = itemsFromBody(body);
+      const { items, error, fixturePackId, fixturePackLabel } = itemsFromBody(body);
 
       if (error || !items) {
         return context.json(errorResponse(error ?? 'Invalid ingestion preview.'), 400);
@@ -110,6 +137,8 @@ export const createIngestionRoute = (
         status: 'ok',
         source: signalStore.mode,
         config: routeConfig,
+        fixturePackId,
+        fixturePackLabel,
         ...result,
       });
     } catch (error) {
@@ -128,8 +157,22 @@ export const createIngestionRoute = (
         return context.json(errorResponse(disabledMessage), 403);
       }
 
+      const authorization = await moderatorAuth.guardMutation();
+
+      if (!authorization.allowed) {
+        await auditStore.append({
+          operation: 'playtest.seed',
+          outcome: 'denied',
+          sourceRoute: '/api/ingestion/playtest-seed',
+          storeMode: signalStore.mode,
+          actor: authorization.actor,
+        });
+
+        return context.json(errorResponse(authorization.message), 403);
+      }
+
       const body = await readOptionalJson(context.req.raw);
-      const { items, error } = itemsFromBody(body);
+      const { items, error, fixturePackId, fixturePackLabel } = itemsFromBody(body);
 
       if (error || !items) {
         return context.json(errorResponse(error ?? 'Invalid ingestion seed.'), 400);
@@ -140,10 +183,25 @@ export const createIngestionRoute = (
       await signalStore.setLastRunSummary(result.runSummary);
       const signals = await signalStore.listSignals();
 
+      await auditStore.append({
+        operation: 'playtest.seed',
+        outcome: 'completed',
+        sourceRoute: '/api/ingestion/playtest-seed',
+        storeMode: signalStore.mode,
+        actor: authorization.actor,
+        counts: {
+          acceptedSignals: result.signals.length,
+          rejectedSignals: result.rejected.length,
+          signalCount: signals.length,
+        },
+      });
+
       return context.json<IngestionSeedResponse>({
         status: 'ok',
         source: signalStore.mode,
         config: routeConfig,
+        fixturePackId,
+        fixturePackLabel,
         ...result,
         signalCount: signals.length,
       });
@@ -163,7 +221,33 @@ export const createIngestionRoute = (
         return context.json(errorResponse(disabledMessage), 403);
       }
 
+      const authorization = await moderatorAuth.guardMutation();
+
+      if (!authorization.allowed) {
+        await auditStore.append({
+          operation: 'playtest.reset',
+          outcome: 'denied',
+          sourceRoute: '/api/ingestion/reset',
+          storeMode: signalStore.mode,
+          actor: authorization.actor,
+        });
+
+        return context.json(errorResponse(authorization.message), 403);
+      }
+
       const result = await signalStore.resetPlaytestSignals();
+
+      await auditStore.append({
+        operation: 'playtest.reset',
+        outcome: 'completed',
+        sourceRoute: '/api/ingestion/reset',
+        storeMode: signalStore.mode,
+        actor: authorization.actor,
+        counts: {
+          resetCount: result.resetCount,
+          signalCount: result.signalCount,
+        },
+      });
 
       return context.json<IngestionResetResponse>({
         status: 'ok',

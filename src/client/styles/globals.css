@@ -780,6 +780,59 @@ p {
   padding: 10px 12px;
 }
 
+.fixture-picker {
+  color: #40535e;
+  display: grid;
+  font-size: 0.86rem;
+  font-weight: 800;
+  gap: 7px;
+  max-width: 520px;
+}
+
+.fixture-picker select {
+  background: #fbfdfe;
+  border: 1px solid #cfdde3;
+  border-radius: 6px;
+  color: #18232c;
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.fixture-picker span {
+  color: #667985;
+  font-weight: 500;
+}
+
+.audit-list {
+  display: grid;
+  gap: 8px;
+}
+
+.audit-list p {
+  color: #566a75;
+}
+
+.audit-row {
+  align-items: center;
+  background: #f3f7f8;
+  border: 1px solid #dce6eb;
+  border-radius: 8px;
+  color: #566a75;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 120px 120px;
+  padding: 10px 12px;
+}
+
+.audit-row strong {
+  color: #18232c;
+  text-transform: capitalize;
+}
+
+.audit-row span {
+  text-transform: capitalize;
+}
+
 .settings-item {
   align-items: start;
   display: grid;
@@ -884,6 +937,11 @@ p {
   .preview-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .audit-row {
+    align-items: start;
+    grid-template-columns: 1fr;
   }
 
   .timeline-list li {

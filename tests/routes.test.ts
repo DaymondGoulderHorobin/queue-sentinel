@@ -33,7 +33,7 @@ describe('incident API routes', () => {
     expect(payload).toMatchObject({
       status: 'ok',
       service: 'queue-sentinel',
-      sprint: 'sprint-4',
+      sprint: 'sprint-5',
       storeMode: 'memory',
       ingestionMode: 'disabled',
       scoringModelVersion: 'sprint-3-deterministic-v1',
