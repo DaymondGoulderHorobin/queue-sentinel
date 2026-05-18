@@ -1,13 +1,13 @@
 # Queue Sentinel
 
-Queue Sentinel is a Reddit Devvit moderation workbench for noisy mod queues. Sprint 5 adds private playtest authorization, diagnostics, audit visibility, and fixture packs on top of controlled read-only ingestion.
+Queue Sentinel is a Reddit Devvit moderation workbench for noisy mod queues. Sprint 6 adds a judge-demo workflow, private playtest runbook, evidence template, and clearer fallback states on top of controlled read-only ingestion and Sprint 5 authorization.
 
-The eventual product will help moderators collapse duplicate reports into explainable incident cards, rank queue pressure, and keep all enforcement decisions human-in-the-loop. Sprint 5 accepts only allowlisted private-playtest metadata, protects mutation routes behind moderator authorization or an explicit local test bypass, and still does not perform real moderation actions.
+The eventual product will help moderators collapse duplicate reports into explainable incident cards, rank queue pressure, and keep all enforcement decisions human-in-the-loop. Sprint 6 accepts only allowlisted private-playtest metadata, protects mutation routes behind moderator authorization or an explicit local test bypass, and still does not perform real moderation actions.
 
 ## Sprint Status
 
-- Sprint: `5 - Private Playtest Authorization`
-- Branch: `sprint-5-private-playtest-authorization`
+- Sprint: `6 - Demo Hardening and Playtest Runbook`
+- Branch: `sprint-6-demo-hardening-runbook`
 - Base: `main`
 - Devvit pattern: Devvit Web with `src/client`, `src/server`, and `src/shared`
 - Data: safe synthetic queue signals plus opt-in allowlisted playtest metadata
@@ -90,13 +90,16 @@ Without the explicit ingestion flag and allowlisted subreddit, ingestion status 
 - Moderator authorization guard for demo seed/reset, playtest seed/reset, scoring recompute, and incident status/metadata updates, with local/test bypass only.
 - Audit log store with memory and Redis adapters plus recent audit API.
 - Diagnostics API and Settings diagnostics panel for runtime, stores, ingestion, scoring, authorization, fallback, and audit state.
+- Dashboard Judge Demo Mode with blocked, ready, complete, and fallback step states.
+- Private playtest runbook and demo evidence template for screenshot/video collection.
+- Clearer fallback, disabled ingestion, unauthorized mutation, no-signal, no-incident, and memory-store explanations.
 - Hono server app with typed incident, demo, health, ingestion, scoring preview, and recompute routes.
 - `incidentStore` abstraction with Redis adapter and memory fallback for persisted scored demo incidents.
 - Separate `QueueSignalStore` abstraction with Redis and memory adapters for accepted playtest signals.
 - API-first client loading with refresh, seed/reset, recompute, loading/error/empty states, and local deterministic fallback.
 - Dashboard, Incidents, Case Card, Metrics, and Settings surfaces for score explanations, cluster summaries, ingestion state, and provenance labels.
-- Documentation for architecture, sprint notes, playtest checklist, PR review, and safety boundaries.
-- Store, route, clustering, scoring, smoke, and workbench helper tests.
+- Documentation for architecture, sprint notes, playtest checklist, runbook, demo evidence, PR review, and safety boundaries.
+- Store, route, authorization, audit, demo-flow, docs, clustering, scoring, smoke, and workbench helper tests.
 - GitHub Actions CI for install, type-check, lint, test, and build.
 
 ## Not Implemented Yet
@@ -116,7 +119,7 @@ src/
   server/   Hono app, API routes, Devvit menu handler, store adapters, and service wrappers
   shared/   Shared constants, demo data, demo/playtest signals, API types, scoring engine, and contracts
 tests/      Smoke, store, route, ingestion, auth, audit, clustering, scoring, and workbench helper tests
-docs/       Architecture, sprint notes, playtest checklist, and PR review checklist
+docs/       Architecture, sprint notes, playtest checklist, runbook, evidence, and PR review checklist
 ```
 
 ## Pull Request Evidence
@@ -126,5 +129,5 @@ For ChatGPT review, include:
 - PR title and summary.
 - Changed file tree.
 - Output from `npm install`, `npm run build`, `npm run check`, and CI.
-- Screenshot or short description of Dashboard, Incidents, Case Card, Metrics, Settings, diagnostics, ingestion controls, audit log, and recompute behavior.
+- Screenshot or short description of Dashboard, Judge Demo Mode, Incidents, Case Card, Metrics, Settings, diagnostics, ingestion controls, audit log, and recompute behavior.
 - Notes on store mode, read-only ingestion mode, authorization mode, browser-shell fallback behavior, main-base status, and any Devvit playtest limitations.

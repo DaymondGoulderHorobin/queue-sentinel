@@ -23,15 +23,21 @@ export const App = () => {
       case 'dashboard':
         return (
           <DashboardPage
+            auditEntries={workbench.auditEntries}
             dataStatus={workbench.dataStatus}
+            diagnostics={workbench.diagnostics}
             errorMessage={workbench.errorMessage}
             incidents={workbench.incidents}
             ingestionStatus={workbench.ingestionStatus}
             isLoading={workbench.isLoading}
             isMutating={workbench.isMutating}
             onInspectIncident={openCaseCard}
+            onPreviewIngestion={workbench.previewIngestion}
             onRecomputeScoring={workbench.recomputeScoring}
             onRefresh={workbench.refreshIncidents}
+            onRefreshDiagnostics={workbench.refreshDiagnostics}
+            onResetPlaytest={workbench.resetPlaytestQueue}
+            onSeedPlaytest={workbench.seedPlaytestQueue}
             scoringPreview={workbench.scoringPreview}
           />
         );
@@ -91,15 +97,21 @@ export const App = () => {
       default:
         return (
           <DashboardPage
+            auditEntries={workbench.auditEntries}
             dataStatus={workbench.dataStatus}
+            diagnostics={workbench.diagnostics}
             errorMessage={workbench.errorMessage}
             incidents={workbench.incidents}
             ingestionStatus={workbench.ingestionStatus}
             isLoading={workbench.isLoading}
             isMutating={workbench.isMutating}
             onInspectIncident={openCaseCard}
+            onPreviewIngestion={workbench.previewIngestion}
             onRecomputeScoring={workbench.recomputeScoring}
             onRefresh={workbench.refreshIncidents}
+            onRefreshDiagnostics={workbench.refreshDiagnostics}
+            onResetPlaytest={workbench.resetPlaytestQueue}
+            onSeedPlaytest={workbench.seedPlaytestQueue}
             scoringPreview={workbench.scoringPreview}
           />
         );

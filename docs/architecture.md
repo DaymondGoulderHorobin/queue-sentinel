@@ -1,23 +1,38 @@
 # Queue Sentinel Architecture
 
-Queue Sentinel uses the current Devvit Web split between client, server, and shared code. Sprint 5 adds private playtest authorization, diagnostics, audit logging, and fixture packs while keeping enforcement safely disabled.
+Queue Sentinel uses the current Devvit Web split between client, server, and shared code. Sprint 6 adds judge-demo guidance, playtest runbook evidence, and fallback-state hardening on top of private playtest authorization, diagnostics, audit logging, and fixture packs.
 
 ## High-Level Shape
 
 - `devvit.json` declares the app name, post entrypoint, server bundle, and moderator menu item.
 - `src/client` contains the React workbench shell rendered through `app.html`.
 - `src/server` contains a Hono server mounted through `@devvit/web/server`.
-- `src/shared` holds incident contracts, API response types, safe demo data, synthetic queue signals, playtest fixtures, fixture packs, and the deterministic scoring engine.
-- `tests` provides smoke, route, authorization, diagnostics, audit, ingestion, store, clustering, scoring, and workbench helper coverage.
+- `src/shared` holds incident contracts, API response types, safe demo data, synthetic queue signals, playtest fixtures, fixture packs, demo-flow helpers, and the deterministic scoring engine.
+- `tests` provides smoke, route, authorization, diagnostics, audit, ingestion, store, demo-flow, docs, clustering, scoring, and workbench helper coverage.
 - `.github/workflows/ci.yml` runs install, type-check, lint, test, and build checks for pull requests and main branch pushes.
 
 ## Client
 
 The client is API-first. `useIncidentWorkbench` loads `/api/incidents`, `/api/scoring/preview`, and `/api/ingestion/status`, tracks loading and mutation state, exposes refresh/seed/reset/status/preview/recompute actions, and falls back to local deterministic scoring when the API is unavailable during browser-only preview.
 
-The visible sections are Dashboard, Incidents, Case Card, Metrics, and Settings. Dashboard shows model version, signal provenance, signals processed, clusters formed, average score, and top scored incident. Incident cards and previews show score, cluster size, top factors, provenance labels, and explanation reasons. Case Card includes signal provenance, cluster summary, and score breakdown panels. Settings includes safe seed/reset, read-only ingestion status/preview/seed/reset, fixture pack selection, diagnostics, recent audit entries, and recompute controls.
+The visible sections are Dashboard, Incidents, Case Card, Metrics, and Settings. Dashboard shows Judge Demo Mode, model version, signal provenance, signals processed, clusters formed, average score, and top scored incident. Incident cards and previews show score, cluster size, top factors, provenance labels, and explanation reasons. Case Card includes signal provenance, cluster summary, and score breakdown panels. Settings includes safe seed/reset, read-only ingestion status/preview/seed/reset, fixture pack selection, diagnostics, recent audit entries, and recompute controls.
 
-All Reddit-facing enforcement controls remain disabled. Sprint 5 exposes only guarded read-only metadata persistence for allowlisted private playtests; it does not expose approve, remove, lock, ban, escalation, webhook, AI, notification, or automatic enforcement paths.
+All Reddit-facing enforcement controls remain disabled. Sprint 6 exposes only guarded read-only metadata persistence for allowlisted private playtests; it does not expose approve, remove, lock, ban, escalation, webhook, AI, notification, or automatic enforcement paths.
+
+## Judge Demo Flow
+
+`src/shared/demoFlow.ts` builds the Dashboard Judge Demo Mode sequence from diagnostics, ingestion status, scoring preview, incidents, audit entries, and data source. Each step can be blocked, ready, complete, or fallback:
+
+- Refresh diagnostics.
+- Confirm playtest readiness.
+- Preview fixture metadata.
+- Seed playtest metadata.
+- Recompute scoring.
+- Inspect the top incident.
+- Review audit trail.
+- Reset playtest signals.
+
+The browser-only fallback path is explicit: it can demonstrate UI and deterministic synthetic data, but it does not claim live Reddit data, authorization, audit writes, or playtest mutations.
 
 ## Scoring Pipeline
 
@@ -36,7 +51,7 @@ Server service files in `src/server/services` expose the clustering, scoring, an
 
 ## Read-only Ingestion
 
-Sprint 5 ingestion remains opt-in and playtest-only:
+Sprint 6 ingestion remains opt-in and playtest-only:
 
 - Default mode is `disabled`.
 - `playtest-readonly` requires `QUEUE_SENTINEL_ENABLE_READONLY_INGESTION=true` and at least one allowlisted subreddit through `QUEUE_SENTINEL_TEST_SUBREDDIT` or `QUEUE_SENTINEL_ALLOWED_SUBREDDITS`.
@@ -86,7 +101,7 @@ Routes:
 
 ## Storage Boundary
 
-`incidentStore` is the storage boundary for incidents. It exposes list, detail, upsert, status, metadata, seed, and reset operations. Sprint 5 still upserts recomputed scored incidents through it.
+`incidentStore` is the storage boundary for incidents. It exposes list, detail, upsert, status, metadata, seed, and reset operations. Sprint 6 still upserts recomputed scored incidents through it.
 
 `QueueSignalStore` is the separate storage boundary for accepted playtest signals. It exposes list, upsert, batch upsert, reset, and last-run summary operations. Redis and memory adapters intentionally mirror the incident store pattern without sharing keys.
 

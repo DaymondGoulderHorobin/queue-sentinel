@@ -1,13 +1,19 @@
 import { MetricCard } from '../components/MetricCard';
+import { JudgeDemoPanel } from '../components/JudgeDemoPanel';
 import { SignalPill } from '../components/SignalPill';
 import { StatusBadge } from '../components/StatusBadge';
 import { APP_NAME, SPRINT_LABEL } from '../../shared/constants';
 import type {
   ApiSource,
+  DiagnosticsResponse,
   IngestionStatusResponse,
   ScoringPreviewResponse,
 } from '../../shared/apiTypes';
-import type { QueueIncident, SignalSource } from '../../shared/types';
+import type {
+  AuditLogEntry,
+  QueueIncident,
+  SignalSource,
+} from '../../shared/types';
 import {
   getPriorityDistribution,
   getRecommendedReviewFocus,
@@ -18,28 +24,40 @@ import {
 } from '../../shared/workbench';
 
 interface DashboardPageProps {
+  auditEntries: AuditLogEntry[];
   dataStatus: 'loading' | ApiSource;
+  diagnostics: DiagnosticsResponse;
   errorMessage: string | null;
   incidents: QueueIncident[];
   ingestionStatus: IngestionStatusResponse;
   isLoading: boolean;
   isMutating: boolean;
   onInspectIncident: (incidentId: string) => void;
+  onPreviewIngestion: (fixturePackId?: string) => void;
   onRecomputeScoring: () => void;
   onRefresh: () => void;
+  onRefreshDiagnostics: () => void;
+  onResetPlaytest: () => void;
+  onSeedPlaytest: (fixturePackId?: string) => void;
   scoringPreview: ScoringPreviewResponse;
 }
 
 export const DashboardPage = ({
+  auditEntries,
   dataStatus,
+  diagnostics,
   errorMessage,
   incidents,
   ingestionStatus,
   isLoading,
   isMutating,
   onInspectIncident,
+  onPreviewIngestion,
   onRecomputeScoring,
   onRefresh,
+  onRefreshDiagnostics,
+  onResetPlaytest,
+  onSeedPlaytest,
   scoringPreview,
 }: DashboardPageProps) => {
   const metrics = getWorkbenchMetrics(incidents);
@@ -77,8 +95,9 @@ export const DashboardPage = ({
           <h2 id="dashboard-title">{APP_NAME}</h2>
           <p>
             Demo and allowed read-only playtest signals are clustered and scored
-            with an explainable deterministic model for faster human moderator
-            triage.
+            with an explainable deterministic model so human moderators can
+            choose what to inspect first. Queue Sentinel does not make or execute
+            moderation decisions.
           </p>
           <div className="hero-badges">
             <StatusBadge tone="build">{SPRINT_LABEL}</StatusBadge>
@@ -117,6 +136,23 @@ export const DashboardPage = ({
       </div>
 
       {errorMessage ? <div className="notice-panel">{errorMessage}</div> : null}
+
+      <JudgeDemoPanel
+        auditEntries={auditEntries}
+        dataStatus={dataStatus}
+        diagnostics={diagnostics}
+        incidents={incidents}
+        ingestionStatus={ingestionStatus}
+        isMutating={isMutating}
+        onInspectIncident={onInspectIncident}
+        onPreviewIngestion={onPreviewIngestion}
+        onRecomputeScoring={onRecomputeScoring}
+        onRefreshDiagnostics={onRefreshDiagnostics}
+        onResetPlaytest={onResetPlaytest}
+        onSeedPlaytest={onSeedPlaytest}
+        scoringPreview={scoringPreview}
+        topIncidentId={topIncident?.id}
+      />
 
       <div className="dashboard-grid dashboard-grid--six">
         <MetricCard

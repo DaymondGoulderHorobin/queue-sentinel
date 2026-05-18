@@ -75,7 +75,7 @@ export interface SeedDemoResponse extends ApiOkResponse {
 
 export interface HealthResponse extends ApiOkResponse {
   service: 'queue-sentinel';
-  sprint: 'sprint-5';
+  sprint: 'sprint-6';
   storeMode: ApiSource;
   ingestionMode: ReadonlyIngestionConfig['mode'];
   scoringModelVersion: ScoringModelVersion;

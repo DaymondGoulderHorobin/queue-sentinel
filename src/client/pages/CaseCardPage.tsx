@@ -109,7 +109,7 @@ export const CaseCardPage = ({
             <p>{selectedIncident.rationaleDraft}</p>
             <small>
               Review aid only. Queue Sentinel is not making an enforcement
-              decision in Sprint 5.
+              decision in Sprint 6.
             </small>
           </div>
         </div>
@@ -197,7 +197,7 @@ export const CaseCardPage = ({
             <p className="eyebrow">Safety boundary</p>
             <strong>Moderation actions are intentionally disabled.</strong>
             <p>
-              Sprint 5 can persist allowlisted read-only metadata only. No
+              Sprint 6 can persist allowlisted read-only metadata only. No
               approve, remove, lock, ban, Reddit escalation, webhook, AI, or
               trigger path is active.
             </p>

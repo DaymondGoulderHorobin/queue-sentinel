@@ -186,6 +186,7 @@ p {
 }
 
 .dashboard-hero,
+.judge-demo-panel,
 .filters-panel,
 .incident-card,
 .incident-preview,
@@ -247,6 +248,70 @@ p {
 .review-focus strong {
   font-size: 1.05rem;
   line-height: 1.35;
+}
+
+.judge-demo-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.judge-demo-panel .panel-heading p:last-child {
+  color: #566a75;
+  margin-top: 6px;
+  max-width: 760px;
+}
+
+.demo-flow-list {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.demo-flow-step {
+  align-items: start;
+  background: #f7fafb;
+  border: 1px solid #dce6eb;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 34px minmax(0, 1fr);
+  min-height: 150px;
+  padding: 12px;
+}
+
+.demo-flow-step__index {
+  align-items: center;
+  background: #15313d;
+  border-radius: 6px;
+  color: #ffffff;
+  display: flex;
+  font-weight: 850;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.demo-flow-step__heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.demo-flow-step h4 {
+  font-size: 1rem;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.demo-flow-step p {
+  color: #566a75;
+  margin-top: 6px;
+}
+
+.demo-flow-step button {
+  margin-top: 10px;
 }
 
 .dashboard-grid {
@@ -874,6 +939,7 @@ p {
   }
 
   .dashboard-hero,
+  .demo-flow-list,
   .dashboard-lanes,
   .workbench-layout,
   .action-safety-panel {

@@ -92,6 +92,19 @@ export const SettingsPage = ({
   const activeFixturePackId =
     selectedFixturePack?.id ?? DEFAULT_PLAYTEST_FIXTURE_PACK_ID;
   const recentAuditEntries = auditEntries.slice(0, 5);
+  const ingestionNotice = !playtestReady
+    ? 'Read-only ingestion is disabled. Set QUEUE_SENTINEL_ENABLE_READONLY_INGESTION=true and allowlist a private test subreddit before seeding metadata.'
+    : !mutationsAllowed
+      ? `${diagnostics.authorization.message} Mutation routes are intentionally blocked until a moderator context or explicit local bypass is available.`
+      : ingestionStatus.signalCount === 0
+        ? 'No playtest signals are stored yet. Preview a fixture pack first, then seed it when authorized.'
+        : null;
+  const storeNotice =
+    dataStatus === 'fallback' || diagnostics.source === 'fallback'
+      ? 'Browser fallback mode is active. UI metrics are synthetic; Redis, authorization checks, and audit writes are unavailable.'
+      : diagnostics.stores.incidentStoreMode === 'memory'
+        ? 'Memory store mode is active. This is safe for local demos but does not persist across server restarts.'
+        : null;
 
   return (
     <section className="page-stack" aria-labelledby="settings-title">
@@ -143,6 +156,13 @@ export const SettingsPage = ({
         {diagnostics.fallbackWarning ? (
           <div className="notice-panel">{diagnostics.fallbackWarning}</div>
         ) : null}
+        {!diagnostics.authorization.mutationsAllowed ? (
+          <div className="notice-panel">
+            Authorization unavailable means mutation routes are blocked by
+            design. Read-only status, diagnostics, previews, lists, and detail
+            routes can still be reviewed safely.
+          </div>
+        ) : null}
         <div className="demo-actions">
           <button disabled={isMutating} onClick={onRefreshDiagnostics} type="button">
             Refresh diagnostics
@@ -167,6 +187,7 @@ export const SettingsPage = ({
             Incidents <strong>{incidentCount}</strong>
           </span>
         </div>
+        {storeNotice ? <div className="notice-panel">{storeNotice}</div> : null}
         {errorMessage ? <div className="notice-panel">{errorMessage}</div> : null}
         <div className="demo-actions">
           <button disabled={isMutating} onClick={onRefresh} type="button">
@@ -236,6 +257,9 @@ export const SettingsPage = ({
           </select>
           <span>{selectedFixturePack?.description ?? 'No fixture pack loaded.'}</span>
         </label>
+        {ingestionNotice ? (
+          <div className="notice-panel">{ingestionNotice}</div>
+        ) : null}
         <div className="demo-actions">
           <button disabled={isMutating} onClick={onRefreshIngestion} type="button">
             Refresh status
@@ -300,6 +324,10 @@ export const SettingsPage = ({
         <div>
           <p className="eyebrow">Audit log</p>
           <h3>Recent safe operations</h3>
+          <p>
+            These are Queue Sentinel operation records, not Reddit moderation
+            logs. They contain safe counts and route names only.
+          </p>
         </div>
         <div className="audit-list">
           {recentAuditEntries.length > 0 ? (
