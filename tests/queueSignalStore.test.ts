@@ -31,20 +31,27 @@ const sampleSummary: IngestionRunSummary = {
 
 const createFakeRedis = () => {
   const values = new Map<string, string>();
+  const calls = {
+    getKeys: [] as string[],
+    setKeys: [] as string[],
+  };
 
   return {
+    calls,
     async del(...keys: string[]) {
       for (const key of keys) {
         values.delete(key);
       }
     },
     async get(key: string) {
+      calls.getKeys.push(key);
       return values.get(key);
     },
     async mGet(keys: string[]) {
       return keys.map((key) => values.get(key) ?? null);
     },
     async set(key: string, value: string) {
+      calls.setKeys.push(key);
       values.set(key, value);
       return 'OK';
     },
@@ -85,5 +92,43 @@ describe('queue signal stores', () => {
       signalCount: 0,
     });
     expect(await store.listSignals()).toHaveLength(0);
+  });
+
+  it('batch upserts Redis-backed signals with a single index write', async () => {
+    const redis = createFakeRedis();
+    const store = createQueueSignalRedisStore(redis);
+    const signals = [
+      sampleSignal,
+      {
+        ...sampleSignal,
+        id: 'playtest-signal-2',
+        itemId: 't3_signal_2',
+        receivedAt: '2026-05-15T08:06:00.000Z',
+      },
+      {
+        ...sampleSignal,
+        id: 'playtest-signal-3',
+        itemId: 't3_signal_3',
+        receivedAt: '2026-05-15T08:07:00.000Z',
+      },
+    ];
+
+    const listedSignals = await store.upsertSignals(signals);
+
+    expect(listedSignals.map((signal) => signal.id)).toEqual([
+      'playtest-signal-1',
+      'playtest-signal-2',
+      'playtest-signal-3',
+    ]);
+    expect(
+      redis.calls.setKeys.filter(
+        (key) => key === 'queue-sentinel:playtest-signal-ids',
+      ),
+    ).toHaveLength(1);
+    expect(
+      redis.calls.getKeys.filter(
+        (key) => key === 'queue-sentinel:playtest-signal-ids',
+      ),
+    ).toHaveLength(2);
   });
 });

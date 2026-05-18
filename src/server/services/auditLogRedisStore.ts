@@ -1,4 +1,5 @@
 import type { AuditLogEntryInput, AuditLogStore } from './auditLogStore';
+import { createAuditLogEntryId } from './auditLogIds';
 import type { AuditLogEntry } from '../../shared/types';
 
 interface RedisLike {
@@ -40,7 +41,7 @@ export const createAuditLogRedisStore = (redis: RedisLike): AuditLogStore => {
       const timestamp = input.timestamp ?? new Date().toISOString();
       const ids = await readIds(redis);
       const entry: AuditLogEntry = {
-        id: `audit-${Date.parse(timestamp)}-${ids.length + 1}`,
+        id: createAuditLogEntryId(timestamp),
         operation: input.operation,
         outcome: input.outcome,
         timestamp,

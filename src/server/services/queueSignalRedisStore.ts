@@ -40,6 +40,20 @@ const writeSignal = async (redis: RedisLike, signal: QueueSignal) => {
   return signal;
 };
 
+const writeSignals = async (redis: RedisLike, signals: readonly QueueSignal[]) => {
+  if (signals.length === 0) {
+    return;
+  }
+
+  const ids = await readIds(redis);
+  await Promise.all(
+    signals.map((signal) =>
+      redis.set(signalKey(signal.id), JSON.stringify(signal)),
+    ),
+  );
+  await writeIds(redis, [...ids, ...signals.map((signal) => signal.id)]);
+};
+
 export const createQueueSignalRedisStore = (
   redis: RedisLike,
 ): QueueSignalStore => {
@@ -65,10 +79,7 @@ export const createQueueSignalRedisStore = (
     },
 
     async upsertSignals(signals) {
-      for (const signal of signals) {
-        await writeSignal(redis, signal);
-      }
-
+      await writeSignals(redis, signals);
       return await store.listSignals();
     },
 

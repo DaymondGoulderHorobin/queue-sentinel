@@ -18,7 +18,7 @@
 | --- | --- | --- | --- |
 | Dashboard | Open with Judge Demo Mode visible. | "The first view is the actual workbench, not a landing page. The guided sequence helps a judge or moderator understand the demo in order." | Submission-ready flow. |
 | Dashboard metrics | Point out model, provenance, signals, clusters, and top incident. | "Every score has provenance and model context. These numbers help decide what to inspect first." | Triage context only. |
-| Settings readiness | Show demo, private playtest, production-safe, fallback, and authorization states. | "Sprint 7 packages the product for review by making operating modes explicit." | Production-safe defaults. |
+| Settings readiness | Show demo, private playtest, production-safe, fallback, and authorization states. | "Queue Sentinel packages the product for review by making operating modes explicit." | Production-safe defaults. |
 | Settings diagnostics | Refresh diagnostics. | "Mutation routes are unavailable unless a moderator context or explicit local bypass is present." | Authorization guard. |
 | Settings fixture pack | Preview fixture metadata. | "Preview runs the normalizer without writing to the signal store." | Non-mutating preview. |
 | Settings fixture pack | Seed playtest signals when authorized. | "Seed writes accepted metadata-only signals to Queue Sentinel's signal store." | No Reddit moderation state mutation. |

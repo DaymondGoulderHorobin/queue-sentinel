@@ -1,6 +1,6 @@
 # Queue Sentinel Architecture
 
-Queue Sentinel uses the current Devvit Web split between client, server, and shared code. Sprint 7 adds marketplace readiness, submission documentation, privacy and safety packaging, release checklists, and production-safe mode copy on top of the Sprint 6 judge-demo and private playtest foundation.
+Queue Sentinel uses the current Devvit Web split between client, server, and shared code. Sprint 7.1 hardens the marketplace readiness package, privacy and safety posture, Redis persistence paths, scoring API handling, and production-safe mode copy on top of the Sprint 6 judge-demo and private playtest foundation.
 
 ## High-Level Shape
 
@@ -17,7 +17,7 @@ The client is API-first. `useIncidentWorkbench` loads `/api/incidents`, `/api/sc
 
 The visible sections are Dashboard, Incidents, Case Card, Metrics, and Settings. Dashboard shows Judge Demo Mode, model version, signal provenance, signals processed, clusters formed, average score, and top scored incident. Incident cards and previews show score, cluster size, top factors, provenance labels, and explanation reasons. Case Card includes signal provenance, cluster summary, and score breakdown panels. Settings includes safe seed/reset, read-only ingestion status/preview/seed/reset, fixture pack selection, diagnostics, recent audit entries, readiness mode summaries, and recompute controls.
 
-All Reddit-facing enforcement controls remain disabled. Sprint 7 exposes only guarded read-only metadata persistence for allowlisted private playtests; it does not expose approve, remove, lock, ban, escalation, webhook, AI, notification, or automatic enforcement paths.
+All Reddit-facing enforcement controls remain disabled. Sprint 7.1 exposes only guarded read-only metadata persistence for allowlisted private playtests; it does not expose approve, remove, lock, ban, escalation, webhook, AI, notification, or automatic enforcement paths.
 
 ## Judge Demo Flow
 
@@ -51,7 +51,7 @@ Server service files in `src/server/services` expose the clustering, scoring, an
 
 ## Submission Readiness
 
-Sprint 7 adds a documentation package for review and marketplace preparation:
+Sprint 7.1 keeps the documentation package ready for review and marketplace preparation:
 
 - `docs/submission-copy.md` for Devpost, app listing, or hackathon form copy.
 - `docs/demo-video-script.md` for 60 second and extended demo recording.
@@ -63,7 +63,7 @@ The repository should read as a reviewable product candidate while retaining pro
 
 ## Read-only Ingestion
 
-Sprint 7 ingestion remains opt-in and playtest-only:
+Sprint 7.1 ingestion remains opt-in and playtest-only:
 
 - Default mode is `disabled`.
 - `playtest-readonly` requires `QUEUE_SENTINEL_ENABLE_READONLY_INGESTION=true` and at least one allowlisted subreddit through `QUEUE_SENTINEL_TEST_SUBREDDIT` or `QUEUE_SENTINEL_ALLOWED_SUBREDDITS`.
@@ -113,7 +113,7 @@ Routes:
 
 ## Storage Boundary
 
-`incidentStore` is the storage boundary for incidents. It exposes list, detail, upsert, status, metadata, seed, and reset operations. Sprint 7 still upserts recomputed scored incidents through it.
+`incidentStore` is the storage boundary for incidents. It exposes list, detail, upsert, batch upsert, status, metadata, seed, and reset operations. Sprint 7.1 still upserts recomputed scored incidents through it.
 
 `QueueSignalStore` is the separate storage boundary for accepted playtest signals. It exposes list, upsert, batch upsert, reset, and last-run summary operations. Redis and memory adapters intentionally mirror the incident store pattern without sharing keys.
 

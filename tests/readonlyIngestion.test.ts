@@ -59,6 +59,23 @@ describe('read-only Reddit signal normalizer', () => {
     expect(JSON.stringify(result.rejected)).not.toContain('remove');
   });
 
+  it('always hashes already-prefixed author keys', () => {
+    const result = normalizeReadonlyIngestion(
+      [
+        {
+          ...PLAYTEST_READONLY_INPUTS[0],
+          authorKey: 'author-johndoe',
+        },
+      ],
+      enabledConfig,
+    );
+
+    expect(result.signals).toHaveLength(1);
+    expect(result.signals[0]?.authorKey).toMatch(/^author-/);
+    expect(result.signals[0]?.authorKey).not.toBe('author-johndoe');
+    expect(result.signals[0]?.authorKey).not.toContain('johndoe');
+  });
+
   it('rejects malformed and invalid timestamp metadata', () => {
     const result = normalizeReadonlyIngestion(
       [

@@ -35,7 +35,7 @@ Browser-only shell mode uses synthetic fallback data. Redis, moderator authoriza
 - Use a private or restricted subreddit for playtest work.
 - Default test name: `queue_sentinel_lab`.
 - Install or playtest the Devvit app only in the private test subreddit.
-- Do not use production subreddit queues for the Sprint 7 review build.
+- Do not use production subreddit queues for the Sprint 7.1 review build.
 
 ## Required Environment
 

@@ -18,6 +18,12 @@ const errorResponse = (message: string): ApiErrorResponse => ({
   message,
 });
 
+class BadJsonRequestError extends Error {}
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+};
+
 const readOptionalBody = async (request: Request) => {
   const text = await request.text();
 
@@ -25,7 +31,25 @@ const readOptionalBody = async (request: Request) => {
     return {};
   }
 
-  return JSON.parse(text) as Record<string, unknown>;
+  try {
+    const body = JSON.parse(text) as unknown;
+
+    if (!isRecord(body)) {
+      throw new BadJsonRequestError(
+        'Scoring recompute request body must be a JSON object.',
+      );
+    }
+
+    return body;
+  } catch (error) {
+    if (error instanceof BadJsonRequestError) {
+      throw error;
+    }
+
+    throw new BadJsonRequestError(
+      'Malformed scoring recompute request body.',
+    );
+  }
 };
 
 const buildScoringPreview = async (
@@ -79,6 +103,25 @@ export const createScoringRoute = (
 
   scoringRoute.post('/recompute-demo', async (context) => {
     try {
+      let body: Record<string, unknown>;
+
+      try {
+        body = await readOptionalBody(context.req.raw);
+      } catch (error) {
+        if (error instanceof BadJsonRequestError) {
+          return context.json(errorResponse(error.message), 400);
+        }
+
+        throw error;
+      }
+
+      if (Object.keys(body).length > 0) {
+        return context.json(
+          errorResponse('External scoring inputs are not accepted in Sprint 7.1.'),
+          400,
+        );
+      }
+
       const authorization = await moderatorAuth.guardMutation();
 
       if (!authorization.allowed) {
@@ -93,20 +136,9 @@ export const createScoringRoute = (
         return context.json(errorResponse(authorization.message), 403);
       }
 
-      const body = await readOptionalBody(context.req.raw);
-
-      if (Object.keys(body).length > 0) {
-        return context.json(
-          errorResponse('External scoring inputs are not accepted in Sprint 7.'),
-          400,
-        );
-      }
-
       const preview = await buildScoringPreview(store, signalStore);
 
-      for (const incident of preview.incidents) {
-        await store.upsertIncident(incident);
-      }
+      await store.upsertIncidents(preview.incidents);
 
       await auditStore.append({
         operation: 'scoring.recompute',

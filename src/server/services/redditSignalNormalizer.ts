@@ -96,10 +96,6 @@ const hashKey = (value: string) => {
 const safeKey = (value: string, prefix: string) => {
   const normalizedValue = value.trim().toLowerCase();
 
-  if (normalizedValue.startsWith(`${prefix}-`)) {
-    return normalizedValue.slice(0, 96);
-  }
-
   return `${prefix}-${hashKey(normalizedValue)}`;
 };
 
