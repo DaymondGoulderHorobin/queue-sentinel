@@ -845,6 +845,33 @@ p {
   padding: 10px 12px;
 }
 
+.readiness-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.readiness-card {
+  background: #f7fafb;
+  border: 1px solid #dce6eb;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  min-height: 150px;
+  padding: 12px;
+}
+
+.readiness-card__heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.readiness-card p {
+  color: #566a75;
+}
+
 .fixture-picker {
   color: #40535e;
   display: grid;
@@ -940,6 +967,7 @@ p {
 
   .dashboard-hero,
   .demo-flow-list,
+  .readiness-grid,
   .dashboard-lanes,
   .workbench-layout,
   .action-safety-panel {

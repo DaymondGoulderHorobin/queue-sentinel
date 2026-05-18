@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { StatusBadge } from '../components/StatusBadge';
 import type {
   DiagnosticsResponse,
   IngestionStatusResponse,
@@ -105,6 +106,57 @@ export const SettingsPage = ({
       : diagnostics.stores.incidentStoreMode === 'memory'
         ? 'Memory store mode is active. This is safe for local demos but does not persist across server restarts.'
         : null;
+  const productionSafeDefault =
+    !ingestionStatus.config.enabled && !diagnostics.authorization.mutationsAllowed;
+  const readinessModes = [
+    {
+      description:
+        'Synthetic incidents, Judge Demo Mode, and browser-shell review remain available without touching Reddit moderation state.',
+      label: 'Demo Mode',
+      status: 'Ready',
+      tone: 'build' as const,
+    },
+    {
+      description: playtestMutationReady
+        ? 'Allowlisted read-only metadata can be seeded, recomputed, audited, and reset in the private playtest.'
+        : playtestReady
+          ? 'Read-only ingestion is configured, but mutation controls still require moderator authorization or explicit local bypass.'
+          : 'Read-only ingestion is disabled until the playtest flag and private subreddit allowlist are configured.',
+      label: 'Private Playtest Mode',
+      status: playtestMutationReady ? 'Ready' : playtestReady ? 'Guarded' : 'Disabled',
+      tone: playtestMutationReady ? ('build' as const) : ('open' as const),
+    },
+    {
+      description:
+        'Fresh runs keep ingestion disabled by default and block sensitive mutations unless authorization is available.',
+      label: 'Production-Safe Default Mode',
+      status: productionSafeDefault ? 'Safe' : 'Review',
+      tone: productionSafeDefault ? ('build' as const) : ('medium' as const),
+    },
+    {
+      description:
+        dataStatus === 'fallback' || diagnostics.source === 'fallback'
+          ? 'Synthetic local data is visible; Redis, authorization, audit writes, and playtest mutations are unavailable.'
+          : 'Server API diagnostics are available, so fallback data is not being used for this view.',
+      label: 'Browser Fallback',
+      status:
+        dataStatus === 'fallback' || diagnostics.source === 'fallback'
+          ? 'Active'
+          : 'Inactive',
+      tone:
+        dataStatus === 'fallback' || diagnostics.source === 'fallback'
+          ? ('medium' as const)
+          : ('build' as const),
+    },
+    {
+      description: mutationsAllowed
+        ? 'Moderator authorization or explicit local bypass is available for Queue Sentinel mutations.'
+        : 'Mutation routes are blocked; read-only status, diagnostics, previews, lists, and details remain safe to review.',
+      label: 'Authorization',
+      status: mutationsAllowed ? 'Authorized' : 'Guarded',
+      tone: mutationsAllowed ? ('build' as const) : ('open' as const),
+    },
+  ];
 
   return (
     <section className="page-stack" aria-labelledby="settings-title">
@@ -114,6 +166,29 @@ export const SettingsPage = ({
           <h2 id="settings-title">Settings and diagnostics</h2>
         </div>
       </div>
+
+      <article className="demo-panel readiness-panel">
+        <div>
+          <p className="eyebrow">Submission readiness</p>
+          <h3>Operating modes</h3>
+          <p>
+            Queue Sentinel is packaged for demo, private playtest, and
+            production-safe review. Scores remain triage context only, and
+            Reddit-facing moderation actions stay disabled.
+          </p>
+        </div>
+        <div className="readiness-grid">
+          {readinessModes.map((mode) => (
+            <div className="readiness-card" key={mode.label}>
+              <div className="readiness-card__heading">
+                <strong>{mode.label}</strong>
+                <StatusBadge tone={mode.tone}>{mode.status}</StatusBadge>
+              </div>
+              <p>{mode.description}</p>
+            </div>
+          ))}
+        </div>
+      </article>
 
       <article className="demo-panel">
         <div>
