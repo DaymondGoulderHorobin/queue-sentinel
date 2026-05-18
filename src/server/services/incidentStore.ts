@@ -13,6 +13,7 @@ export interface IncidentStore {
   listIncidents(): Promise<readonly QueueIncident[]>;
   getIncident(id: string): Promise<QueueIncident | null>;
   upsertIncident(incident: QueueIncident): Promise<QueueIncident>;
+  upsertIncidents(incidents: readonly QueueIncident[]): Promise<readonly QueueIncident[]>;
   updateIncidentStatus(
     id: string,
     status: IncidentStatus,

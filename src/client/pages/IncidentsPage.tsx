@@ -122,7 +122,7 @@ export const IncidentsPage = ({
               message={
                 incidents.length === 0
                   ? 'No incidents are loaded yet. Refresh data, seed demo incidents when authorized, or recompute scoring from the Dashboard or Settings.'
-                  : 'No scored incidents match the current filter set. Clear filters to return to the full Sprint 7 queue.'
+                  : 'No scored incidents match the current filter set. Clear filters to return to the full Sprint 7.1 queue.'
               }
               onAction={resetFilters}
               title="No incidents found"

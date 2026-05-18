@@ -68,7 +68,8 @@ npm run dev:shell
 
 - README links to the runbook, evidence template, privacy and safety doc, submission copy, demo script, release checklist, and Devvit publish readiness checklist.
 - `docs/playtest-runbook.md` still matches the current private playtest flow.
-- `docs/pr-review-checklist.md` mentions Sprint 7, branch/base, safety, CI, and browser review evidence.
+- `docs/pr-review-checklist.md` mentions the current sprint, branch/base, safety, CI, and browser review evidence.
+- `docs/sprint-7-1-hardening-notes.md` summarizes Redis batching, scoring JSON handling, audit ID, author-key hashing, and stale preview behavior.
 - Known limitations are visible and do not overstate production ingestion or enforcement.
 
 ## Do Not Submit Unless
@@ -80,5 +81,6 @@ npm run dev:shell
 - Mutation routes remain guarded.
 - No approve, remove, lock, ban, mute, flair enforcement, Reddit escalation, webhook, AI decisioning, notification, or automatic enforcement path is present.
 - No full post/comment bodies or raw usernames are stored in audit entries.
+- Accepted author keys are hashed and not stored in readable form.
 - Browser fallback copy does not imply live Reddit data.
 - Submission screenshots or notes cover Dashboard, Judge Demo Mode, Settings diagnostics, Case Card, audit log, and reset.

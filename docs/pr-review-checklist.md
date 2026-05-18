@@ -13,7 +13,7 @@ Use this checklist when asking ChatGPT to review Queue Sentinel pull requests.
 - Store mode notes: Redis, memory fallback, or browser-shell fallback.
 - Read-only ingestion mode, allowlist, and signal store notes.
 - Authorization mode and local/test bypass notes.
-- Branch/base note confirming Sprint 7 targets `main`.
+- Branch/base note confirming the current sprint branch targets `main`.
 - Any Devvit warnings or local playtest limitations.
 
 ## Acceptance Criteria
@@ -21,6 +21,7 @@ Use this checklist when asking ChatGPT to review Queue Sentinel pull requests.
 - App shell runs through the documented Devvit workflow.
 - Safe synthetic queue signals exist separately from live Reddit data.
 - Read-only ingestion is disabled by default and requires the explicit playtest flag plus allowlisted subreddit before persistence.
+- Accepted author keys are hashed even when input values already use an `author-` prefix.
 - Sensitive mutation routes require moderator authorization or the explicit local/test bypass.
 - Denied mutation responses return a safe 403 message without private subreddit or raw user data.
 - Dashboard shows Judge Demo Mode, deterministic scoring active, model version, provenance, signals processed, clusters formed, average score, top scored incident, refresh, and recompute controls.
@@ -36,8 +37,8 @@ Use this checklist when asking ChatGPT to review Queue Sentinel pull requests.
 - Fixture packs cover repost waves, heated threads, self-promo, privacy-adjacent isolation, and formatting cleanup.
 - Demo flow, clustering, scoring, normalizer, ingestion routes, authorization, audit, fixture packs, docs, and signal stores are deterministic and covered by tests.
 - No real approve, remove, lock, ban, Reddit escalation, webhook, AI, external integration, notification, or automatic enforcement actions are active.
-- README documents install, run, build, test, Sprint 7 limitations, ingestion/auth flags, demo runbook, submission docs, release checklist, privacy and safety, Devvit publish readiness, and main-base status.
-- PR remains focused on marketplace readiness, production-safe defaults, submission docs, UI copy, safety checks, and tests.
+- README documents install, run, build, test, current limitations, ingestion/auth flags, demo runbook, submission docs, release checklist, privacy and safety, Devvit publish readiness, and main-base status.
+- PR remains focused on the stated sprint scope, production-safe defaults, safety checks, and tests.
 
 ## Manual Review
 

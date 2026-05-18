@@ -2,6 +2,36 @@ import { describe, expect, it } from 'vitest';
 
 import { DEMO_INCIDENTS } from '../src/shared/demoData';
 import { createIncidentMemoryStore } from '../src/server/services/incidentMemoryStore';
+import { createIncidentRedisStore } from '../src/server/services/incidentRedisStore';
+
+const createFakeRedis = () => {
+  const values = new Map<string, string>();
+  const calls = {
+    getKeys: [] as string[],
+    setKeys: [] as string[],
+  };
+
+  return {
+    calls,
+    async del(...keys: string[]) {
+      for (const key of keys) {
+        values.delete(key);
+      }
+    },
+    async get(key: string) {
+      calls.getKeys.push(key);
+      return values.get(key);
+    },
+    async mGet(keys: string[]) {
+      return keys.map((key) => values.get(key) ?? null);
+    },
+    async set(key: string, value: string) {
+      calls.setKeys.push(key);
+      values.set(key, value);
+      return 'OK';
+    },
+  };
+};
 
 describe('incident memory store', () => {
   it('seeds and lists Sprint 3 demo incidents', async () => {
@@ -77,5 +107,40 @@ describe('incident memory store', () => {
     expect(reset.count).toBe(10);
     expect(await store.listIncidents()).toHaveLength(10);
     expect(await store.getIncident('inc-demo-extra')).toBeNull();
+  });
+
+  it('batch seeds Redis demo incidents with one index write', async () => {
+    const redis = createFakeRedis();
+    const store = createIncidentRedisStore(redis);
+
+    const seedResult = await store.seedDemoIncidents();
+
+    expect(seedResult.count).toBe(10);
+    expect(seedResult.overwritten).toBe(0);
+    expect(
+      redis.calls.setKeys.filter((key) => key === 'queue-sentinel:incident-ids'),
+    ).toHaveLength(1);
+    expect(
+      redis.calls.getKeys.filter((key) => key === 'queue-sentinel:incident-ids'),
+    ).toHaveLength(1);
+
+    const secondSeedResult = await store.seedDemoIncidents();
+
+    expect(secondSeedResult.overwritten).toBe(10);
+    expect(
+      redis.calls.setKeys.filter((key) => key === 'queue-sentinel:incident-ids'),
+    ).toHaveLength(1);
+  });
+
+  it('batch upserts Redis recompute incidents with one index write', async () => {
+    const redis = createFakeRedis();
+    const store = createIncidentRedisStore(redis);
+
+    await store.upsertIncidents(DEMO_INCIDENTS.slice(0, 3));
+
+    expect(
+      redis.calls.setKeys.filter((key) => key === 'queue-sentinel:incident-ids'),
+    ).toHaveLength(1);
+    expect(await store.listIncidents()).toHaveLength(3);
   });
 });

@@ -1,4 +1,5 @@
 import type { AuditLogEntryInput, AuditLogStore } from './auditLogStore';
+import { createAuditLogEntryId } from './auditLogIds';
 import type { AuditLogEntry } from '../../shared/types';
 
 const AUDIT_LOG_MAX_ENTRIES = 100;
@@ -18,7 +19,7 @@ export const createAuditLogMemoryStore = (): AuditLogStore => {
     async append(input: AuditLogEntryInput) {
       const timestamp = input.timestamp ?? new Date().toISOString();
       const entry: AuditLogEntry = {
-        id: `audit-${Date.parse(timestamp)}-${entries.length + 1}`,
+        id: createAuditLogEntryId(timestamp),
         operation: input.operation,
         outcome: input.outcome,
         timestamp,

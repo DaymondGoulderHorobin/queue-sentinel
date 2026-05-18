@@ -77,6 +77,16 @@ export const createIncidentMemoryStore = (
       return cloneIncident(nextIncident);
     },
 
+    async upsertIncidents(nextIncidents) {
+      const storedIncidents = nextIncidents.map(cloneIncident);
+
+      for (const incident of storedIncidents) {
+        incidents.set(incident.id, incident);
+      }
+
+      return storedIncidents.map(cloneIncident);
+    },
+
     async updateIncidentStatus(id, status: IncidentStatus) {
       const incident = incidents.get(id);
 

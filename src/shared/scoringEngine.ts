@@ -641,13 +641,13 @@ export const materializeClusteredIncidents = (
         recommendedReviewAction: `Review this cluster first if its score of ${score.score} is the highest active triage signal.`,
         confidenceLabel: score.confidenceLabel,
         rationaleDraft:
-          `Deterministic Sprint 7 scoring ranked this as ${score.priority} from ${signalCountLabel}. Use the factors as review context only; Queue Sentinel is not making an enforcement decision.`,
+          `Deterministic Sprint 7.1 scoring ranked this as ${score.priority} from ${signalCountLabel}. Use the factors as review context only; Queue Sentinel is not making an enforcement decision.`,
         clusterSummary: clusterSummary(cluster),
         priorityScore: score,
         ingestionProvenance: provenance,
         tags: unique([
           ...(baseIncident.tags ?? []),
-          'sprint-7-scored',
+          'sprint-7-1-scored',
           signalSource,
           `signals-${cluster.signals.length}`,
         ]),

@@ -47,6 +47,25 @@ const writeIncident = async (redis: RedisLike, incident: QueueIncident) => {
   return incident;
 };
 
+const writeIncidents = async (
+  redis: RedisLike,
+  incidents: readonly QueueIncident[],
+  existingIds?: readonly string[],
+) => {
+  if (incidents.length === 0) {
+    return [];
+  }
+
+  const ids = existingIds ?? (await readIds(redis));
+  await Promise.all(
+    incidents.map((incident) =>
+      redis.set(incidentKey(incident.id), JSON.stringify(incident)),
+    ),
+  );
+  await writeIds(redis, [...ids, ...incidents.map((incident) => incident.id)]);
+  return incidents;
+};
+
 const applyMetadataPatch = (
   incident: QueueIncident,
   patch: IncidentMetadataPatch,
@@ -64,6 +83,7 @@ export const createIncidentRedisStore = (redis: RedisLike): IncidentStore => {
   const seedDemoIncidents = async (options?: { overwrite?: boolean }) => {
     const existingIds = await readIds(redis);
     let overwritten = 0;
+    const incidentsToWrite: QueueIncident[] = [];
 
     for (const incident of SCORED_DEMO_INCIDENTS) {
       const exists = existingIds.includes(incident.id);
@@ -73,9 +93,11 @@ export const createIncidentRedisStore = (redis: RedisLike): IncidentStore => {
       }
 
       if (!exists || options?.overwrite) {
-        await writeIncident(redis, incident);
+        incidentsToWrite.push(incident);
       }
     }
+
+    await writeIncidents(redis, incidentsToWrite, existingIds);
 
     return {
       source: 'redis',
@@ -107,6 +129,10 @@ export const createIncidentRedisStore = (redis: RedisLike): IncidentStore => {
 
     async upsertIncident(incident) {
       return await writeIncident(redis, incident);
+    },
+
+    async upsertIncidents(incidents) {
+      return await writeIncidents(redis, incidents);
     },
 
     async updateIncidentStatus(id, status: IncidentStatus) {

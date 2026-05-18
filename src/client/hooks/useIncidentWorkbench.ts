@@ -106,7 +106,7 @@ const getInitialSelectedIncidentId = () =>
 
 const fallbackIncidents = () => fallbackScoringPreview().incidents;
 
-const preferScoredIncidents = (
+export const preferScoredIncidents = (
   incidents: QueueIncident[],
   scoringPreview: ScoringPreviewResponse,
 ) => {
@@ -115,6 +115,9 @@ const preferScoredIncidents = (
   );
 
   if (scoringPreview.signalSource === 'synthetic-demo' && hasPlaytestIncidents) {
+    // After playtest reset, Redis can still hold stale scored incidents from the
+    // prior playtest recompute. A synthetic preview means there are no active
+    // playtest signals, so the synthetic preview is the honest current source.
     return scoringPreview.incidents;
   }
 
@@ -184,7 +187,7 @@ export const useIncidentWorkbench = () => {
       setDiagnostics(diagnosticsPayload);
       setAuditEntries(auditPayload.entries);
     } catch (error) {
-      console.info('Using local Sprint 7 diagnostics fallback.', error);
+      console.info('Using local Sprint 7.1 diagnostics fallback.', error);
       setDiagnostics(fallbackDiagnostics());
       setAuditEntries([]);
     }
@@ -206,7 +209,7 @@ export const useIncidentWorkbench = () => {
       setErrorMessage(null);
       await refreshDiagnosticsData();
     } catch (error) {
-      console.info('Using local Sprint 7 fallback incidents.', error);
+      console.info('Using local Sprint 7.1 fallback incidents.', error);
       const fallbackPreview = fallbackScoringPreview();
       preserveSelection(fallbackPreview.incidents);
       setScoringPreview(fallbackPreview);
@@ -242,7 +245,7 @@ export const useIncidentWorkbench = () => {
       setDataStatus(payload.result.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 7 seed fallback.', error);
+      console.info('Using local Sprint 7.1 seed fallback.', error);
 
       if (isAuthorizationError(error)) {
         await refreshDiagnosticsData();
@@ -281,7 +284,7 @@ export const useIncidentWorkbench = () => {
       setDataStatus(payload.result.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 7 reset fallback.', error);
+      console.info('Using local Sprint 7.1 reset fallback.', error);
 
       if (isAuthorizationError(error)) {
         await refreshDiagnosticsData();
@@ -315,7 +318,7 @@ export const useIncidentWorkbench = () => {
         setDataStatus(payload.source);
         setErrorMessage(null);
       } catch (error) {
-        console.info('Using local Sprint 7 status fallback.', error);
+        console.info('Using local Sprint 7.1 status fallback.', error);
 
         if (isAuthorizationError(error)) {
           await refreshDiagnosticsData();
@@ -360,7 +363,7 @@ export const useIncidentWorkbench = () => {
       setDataStatus(payload.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 7 recompute fallback.', error);
+      console.info('Using local Sprint 7.1 recompute fallback.', error);
 
       if (isAuthorizationError(error)) {
         await refreshDiagnosticsData();
@@ -389,7 +392,7 @@ export const useIncidentWorkbench = () => {
       await refreshDiagnosticsData();
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 7 ingestion status fallback.', error);
+      console.info('Using local Sprint 7.1 ingestion status fallback.', error);
       setIngestionStatus(fallbackIngestionStatus());
       setDiagnostics(fallbackDiagnostics());
       setAuditEntries([]);

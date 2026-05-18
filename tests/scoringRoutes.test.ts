@@ -64,6 +64,36 @@ describe('scoring API routes', () => {
     expect(payload.message).toContain('External scoring inputs');
   });
 
+  it('returns 400 for malformed scoring recompute JSON', async () => {
+    const store = createIncidentMemoryStore();
+    const app = createServerApp(store);
+
+    const response = await app.request('/api/scoring/recompute-demo', {
+      body: '{',
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
+    const payload = await readJson<ApiErrorResponse>(response);
+
+    expect(response.status).toBe(400);
+    expect(payload.message).toContain('Malformed scoring recompute request body');
+  });
+
+  it('returns 400 for non-object scoring recompute JSON', async () => {
+    const store = createIncidentMemoryStore();
+    const app = createServerApp(store);
+
+    const response = await app.request('/api/scoring/recompute-demo', {
+      body: '[]',
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
+    const payload = await readJson<ApiErrorResponse>(response);
+
+    expect(response.status).toBe(400);
+    expect(payload.message).toContain('must be a JSON object');
+  });
+
   it('keeps scoring responses free of moderation action commands', async () => {
     const store = createIncidentMemoryStore();
     await store.seedDemoIncidents();
