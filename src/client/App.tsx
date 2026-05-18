@@ -69,13 +69,16 @@ export const App = () => {
       case 'settings':
         return (
           <SettingsPage
+            auditEntries={workbench.auditEntries}
             dataStatus={workbench.dataStatus}
+            diagnostics={workbench.diagnostics}
             errorMessage={workbench.errorMessage}
             incidentCount={workbench.incidents.length}
             ingestionStatus={workbench.ingestionStatus}
             isMutating={workbench.isMutating}
             onPreviewIngestion={workbench.previewIngestion}
             onRefresh={workbench.refreshIncidents}
+            onRefreshDiagnostics={workbench.refreshDiagnostics}
             onRefreshIngestion={workbench.refreshIngestionStatus}
             onRecomputeScoring={workbench.recomputeScoring}
             onResetDemo={workbench.resetDemoQueue}

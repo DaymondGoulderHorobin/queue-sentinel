@@ -6,6 +6,8 @@ import {
   seedDemoIncidents,
   updateIncidentStatus,
 } from '../api/incidents';
+import { getRecentAuditEntries } from '../api/audit';
+import { getDiagnostics } from '../api/diagnostics';
 import {
   getIngestionStatus,
   previewReadonlyIngestion,
@@ -15,14 +17,23 @@ import {
 import { previewScoring, recomputeDemoScoring } from '../api/scoring';
 import type {
   ApiSource,
+  DiagnosticsResponse,
   IngestionStatusResponse,
   ScoringPreviewResponse,
 } from '../../shared/apiTypes';
+import { PLAYTEST_FIXTURE_PACK_OPTIONS } from '../../shared/playtestFixturePacks';
 import { buildDemoScoringPreview } from '../../shared/scoringEngine';
-import type { IncidentStatus, QueueIncident } from '../../shared/types';
+import type {
+  AuditLogEntry,
+  IncidentStatus,
+  QueueIncident,
+} from '../../shared/types';
 import { getTopPriorityIncident } from '../../shared/workbench';
 
 type WorkbenchDataStatus = 'loading' | ApiSource;
+
+const isAuthorizationError = (error: unknown): error is Error =>
+  error instanceof Error && error.message.includes('Moderator authorization');
 
 const fallbackScoringPreview = (): ScoringPreviewResponse => ({
   status: 'ok',
@@ -44,6 +55,47 @@ const fallbackIngestionStatus = (): IngestionStatusResponse => ({
   signalCount: 0,
   lastRun: null,
   modelVersion: fallbackScoringPreview().modelVersion,
+  timestamp: new Date().toISOString(),
+});
+
+const fallbackDiagnostics = (): DiagnosticsResponse => ({
+  status: 'ok',
+  source: 'fallback',
+  runtimeMode: 'browser-preview',
+  stores: {
+    incidentStoreMode: 'fallback',
+    signalStoreMode: 'fallback',
+    auditStoreMode: 'fallback',
+  },
+  ingestion: {
+    mode: 'disabled',
+    enabled: false,
+    allowlistConfigured: false,
+    allowedSubredditCount: 0,
+    signalCount: 0,
+    lastRun: null,
+    availableFixturePacks: [...PLAYTEST_FIXTURE_PACK_OPTIONS],
+  },
+  incidents: {
+    count: fallbackScoringPreview().incidents.length,
+  },
+  scoring: {
+    modelVersion: fallbackScoringPreview().modelVersion,
+    lastRecomputeAt: null,
+  },
+  authorization: {
+    mode: 'unavailable',
+    status: 'unavailable',
+    mutationsAllowed: false,
+    actor: null,
+    message: 'Server authorization diagnostics are unavailable.',
+  },
+  audit: {
+    entryCount: 0,
+    recentLimit: 25,
+  },
+  fallbackWarning:
+    'Server API unavailable in this preview. Mutation controls are disabled.',
   timestamp: new Date().toISOString(),
 });
 
@@ -92,6 +144,9 @@ export const useIncidentWorkbench = () => {
     useState<ScoringPreviewResponse>(fallbackScoringPreview);
   const [ingestionStatus, setIngestionStatus] =
     useState<IngestionStatusResponse>(fallbackIngestionStatus);
+  const [diagnostics, setDiagnostics] =
+    useState<DiagnosticsResponse>(fallbackDiagnostics);
+  const [auditEntries, setAuditEntries] = useState<AuditLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMutating, setIsMutating] = useState(false);
 
@@ -120,6 +175,21 @@ export const useIncidentWorkbench = () => {
     });
   }, []);
 
+  const refreshDiagnosticsData = useCallback(async () => {
+    try {
+      const [diagnosticsPayload, auditPayload] = await Promise.all([
+        getDiagnostics(),
+        getRecentAuditEntries(),
+      ]);
+      setDiagnostics(diagnosticsPayload);
+      setAuditEntries(auditPayload.entries);
+    } catch (error) {
+      console.info('Using local Sprint 5 diagnostics fallback.', error);
+      setDiagnostics(fallbackDiagnostics());
+      setAuditEntries([]);
+    }
+  }, []);
+
   const refreshIncidents = useCallback(async () => {
     setIsLoading(true);
 
@@ -134,12 +204,15 @@ export const useIncidentWorkbench = () => {
       setIngestionStatus(ingestionPayload);
       setDataStatus(payload.source);
       setErrorMessage(null);
+      await refreshDiagnosticsData();
     } catch (error) {
-      console.info('Using local Sprint 4 fallback incidents.', error);
+      console.info('Using local Sprint 5 fallback incidents.', error);
       const fallbackPreview = fallbackScoringPreview();
       preserveSelection(fallbackPreview.incidents);
       setScoringPreview(fallbackPreview);
       setIngestionStatus(fallbackIngestionStatus());
+      setDiagnostics(fallbackDiagnostics());
+      setAuditEntries([]);
       setDataStatus('fallback');
       setErrorMessage(
         'API unavailable in this preview. Showing safe local fallback data.',
@@ -147,7 +220,7 @@ export const useIncidentWorkbench = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [preserveSelection]);
+  }, [preserveSelection, refreshDiagnosticsData]);
 
   useEffect(() => {
     void refreshIncidents();
@@ -165,20 +238,30 @@ export const useIncidentWorkbench = () => {
         ...buildDemoScoringPreview(payload.incidents),
       });
       setIngestionStatus(await getIngestionStatus());
+      await refreshDiagnosticsData();
       setDataStatus(payload.result.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 4 seed fallback.', error);
+      console.info('Using local Sprint 5 seed fallback.', error);
+
+      if (isAuthorizationError(error)) {
+        await refreshDiagnosticsData();
+        setErrorMessage(error.message);
+        return;
+      }
+
       const fallbackPreview = fallbackScoringPreview();
       preserveSelection(fallbackPreview.incidents);
       setScoringPreview(fallbackPreview);
       setIngestionStatus(fallbackIngestionStatus());
+      setDiagnostics(fallbackDiagnostics());
+      setAuditEntries([]);
       setDataStatus('fallback');
       setErrorMessage('Demo seed used local fallback data in this preview.');
     } finally {
       setIsMutating(false);
     }
-  }, [preserveSelection]);
+  }, [preserveSelection, refreshDiagnosticsData]);
 
   const resetDemoQueue = useCallback(async () => {
     setIsMutating(true);
@@ -192,20 +275,30 @@ export const useIncidentWorkbench = () => {
         ...buildDemoScoringPreview(payload.incidents),
       });
       setIngestionStatus(await getIngestionStatus());
+      await refreshDiagnosticsData();
       setDataStatus(payload.result.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 4 reset fallback.', error);
+      console.info('Using local Sprint 5 reset fallback.', error);
+
+      if (isAuthorizationError(error)) {
+        await refreshDiagnosticsData();
+        setErrorMessage(error.message);
+        return;
+      }
+
       const fallbackPreview = fallbackScoringPreview();
       preserveSelection(fallbackPreview.incidents);
       setScoringPreview(fallbackPreview);
       setIngestionStatus(fallbackIngestionStatus());
+      setDiagnostics(fallbackDiagnostics());
+      setAuditEntries([]);
       setDataStatus('fallback');
       setErrorMessage('Demo reset used local fallback data in this preview.');
     } finally {
       setIsMutating(false);
     }
-  }, [preserveSelection]);
+  }, [preserveSelection, refreshDiagnosticsData]);
 
   const updateStatus = useCallback(
     async (id: string, status: IncidentStatus) => {
@@ -214,10 +307,18 @@ export const useIncidentWorkbench = () => {
       try {
         const payload = await updateIncidentStatus(id, status);
         preserveSelection(replaceIncident(incidents, payload.incident));
+        await refreshDiagnosticsData();
         setDataStatus(payload.source);
         setErrorMessage(null);
       } catch (error) {
-        console.info('Using local Sprint 4 status fallback.', error);
+        console.info('Using local Sprint 5 status fallback.', error);
+
+        if (isAuthorizationError(error)) {
+          await refreshDiagnosticsData();
+          setErrorMessage(error.message);
+          return;
+        }
+
         const updatedIncident = incidents.find((incident) => incident.id === id);
 
         if (updatedIncident) {
@@ -228,17 +329,19 @@ export const useIncidentWorkbench = () => {
               updatedAt: new Date().toISOString(),
             }),
           );
-      }
+        }
 
-      setDataStatus('fallback');
-      setErrorMessage(
+        setDiagnostics(fallbackDiagnostics());
+        setAuditEntries([]);
+        setDataStatus('fallback');
+        setErrorMessage(
           'Internal status update used local fallback state in this preview.',
         );
       } finally {
         setIsMutating(false);
       }
     },
-    [incidents, preserveSelection],
+    [incidents, preserveSelection, refreshDiagnosticsData],
   );
 
   const recomputeScoring = useCallback(async () => {
@@ -249,14 +352,24 @@ export const useIncidentWorkbench = () => {
       preserveSelection(payload.incidents);
       setScoringPreview(payload);
       setIngestionStatus(await getIngestionStatus());
+      await refreshDiagnosticsData();
       setDataStatus(payload.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 4 recompute fallback.', error);
+      console.info('Using local Sprint 5 recompute fallback.', error);
+
+      if (isAuthorizationError(error)) {
+        await refreshDiagnosticsData();
+        setErrorMessage(error.message);
+        return;
+      }
+
       const fallbackPreview = fallbackScoringPreview();
       preserveSelection(fallbackPreview.incidents);
       setScoringPreview(fallbackPreview);
       setIngestionStatus(fallbackIngestionStatus());
+      setDiagnostics(fallbackDiagnostics());
+      setAuditEntries([]);
       setDataStatus('fallback');
       setErrorMessage(
         'Scoring recompute used deterministic local fallback data in this preview.',
@@ -264,28 +377,33 @@ export const useIncidentWorkbench = () => {
     } finally {
       setIsMutating(false);
     }
-  }, [preserveSelection]);
+  }, [preserveSelection, refreshDiagnosticsData]);
 
   const refreshIngestionStatus = useCallback(async () => {
     try {
       setIngestionStatus(await getIngestionStatus());
+      await refreshDiagnosticsData();
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 4 ingestion status fallback.', error);
+      console.info('Using local Sprint 5 ingestion status fallback.', error);
       setIngestionStatus(fallbackIngestionStatus());
+      setDiagnostics(fallbackDiagnostics());
+      setAuditEntries([]);
       setErrorMessage('Ingestion status used local fallback data in this preview.');
     }
-  }, []);
+  }, [refreshDiagnosticsData]);
 
-  const previewIngestion = useCallback(async () => {
+  const previewIngestion = useCallback(async (fixturePackId?: string) => {
     setIsMutating(true);
 
     try {
-      await previewReadonlyIngestion();
+      await previewReadonlyIngestion(fixturePackId);
       setIngestionStatus(await getIngestionStatus());
+      await refreshDiagnosticsData();
       setErrorMessage(null);
     } catch (error) {
       console.info('Read-only ingestion preview unavailable.', error);
+      await refreshDiagnosticsData();
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -294,13 +412,13 @@ export const useIncidentWorkbench = () => {
     } finally {
       setIsMutating(false);
     }
-  }, []);
+  }, [refreshDiagnosticsData]);
 
-  const seedPlaytestQueue = useCallback(async () => {
+  const seedPlaytestQueue = useCallback(async (fixturePackId?: string) => {
     setIsMutating(true);
 
     try {
-      await seedPlaytestSignals();
+      await seedPlaytestSignals(fixturePackId);
       const [previewPayload, ingestionPayload] = await Promise.all([
         recomputeDemoScoring(),
         getIngestionStatus(),
@@ -308,10 +426,12 @@ export const useIncidentWorkbench = () => {
       preserveSelection(previewPayload.incidents);
       setScoringPreview(previewPayload);
       setIngestionStatus(ingestionPayload);
+      await refreshDiagnosticsData();
       setDataStatus(previewPayload.source);
       setErrorMessage(null);
     } catch (error) {
       console.info('Read-only playtest seed unavailable.', error);
+      await refreshDiagnosticsData();
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -320,7 +440,7 @@ export const useIncidentWorkbench = () => {
     } finally {
       setIsMutating(false);
     }
-  }, [preserveSelection]);
+  }, [preserveSelection, refreshDiagnosticsData]);
 
   const resetPlaytestQueue = useCallback(async () => {
     setIsMutating(true);
@@ -334,10 +454,12 @@ export const useIncidentWorkbench = () => {
       preserveSelection(previewPayload.incidents);
       setScoringPreview(previewPayload);
       setIngestionStatus(ingestionPayload);
+      await refreshDiagnosticsData();
       setDataStatus(previewPayload.source);
       setErrorMessage(null);
     } catch (error) {
       console.info('Read-only playtest reset unavailable.', error);
+      await refreshDiagnosticsData();
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -346,16 +468,19 @@ export const useIncidentWorkbench = () => {
     } finally {
       setIsMutating(false);
     }
-  }, [preserveSelection]);
+  }, [preserveSelection, refreshDiagnosticsData]);
 
   return {
+    auditEntries,
     dataStatus,
+    diagnostics,
     errorMessage,
     ingestionStatus,
     incidents,
     isLoading,
     isMutating,
     previewIngestion,
+    refreshDiagnostics: refreshDiagnosticsData,
     refreshIncidents,
     refreshIngestionStatus,
     recomputeScoring,

@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
 
 import { buildDemoScoringPreview } from '../services/incidentMaterializer';
+import type { AuditLogStore } from '../services/auditLogStore';
 import type { IncidentStore } from '../services/incidentStore';
+import type { ModeratorAuthService } from '../services/moderatorAuth';
 import type { QueueSignalStore } from '../services/queueSignalStore';
 import type {
   ApiErrorResponse,
@@ -55,6 +57,8 @@ const buildScoringPreview = async (
 export const createScoringRoute = (
   store: IncidentStore,
   signalStore: QueueSignalStore,
+  moderatorAuth: ModeratorAuthService,
+  auditStore: AuditLogStore,
 ) => {
   const scoringRoute = new Hono();
 
@@ -75,11 +79,25 @@ export const createScoringRoute = (
 
   scoringRoute.post('/recompute-demo', async (context) => {
     try {
+      const authorization = await moderatorAuth.guardMutation();
+
+      if (!authorization.allowed) {
+        await auditStore.append({
+          operation: 'scoring.recompute',
+          outcome: 'denied',
+          sourceRoute: '/api/scoring/recompute-demo',
+          storeMode: store.mode,
+          actor: authorization.actor,
+        });
+
+        return context.json(errorResponse(authorization.message), 403);
+      }
+
       const body = await readOptionalBody(context.req.raw);
 
       if (Object.keys(body).length > 0) {
         return context.json(
-          errorResponse('External scoring inputs are not accepted in Sprint 4.'),
+          errorResponse('External scoring inputs are not accepted in Sprint 5.'),
           400,
         );
       }
@@ -89,6 +107,19 @@ export const createScoringRoute = (
       for (const incident of preview.incidents) {
         await store.upsertIncident(incident);
       }
+
+      await auditStore.append({
+        operation: 'scoring.recompute',
+        outcome: 'completed',
+        sourceRoute: '/api/scoring/recompute-demo',
+        storeMode: store.mode,
+        actor: authorization.actor,
+        counts: {
+          incidents: preview.incidents.length,
+          signalsProcessed: preview.signalsProcessed,
+          clustersFormed: preview.clustersFormed,
+        },
+      });
 
       return context.json<ScoringRecomputeResponse>({
         status: 'ok',

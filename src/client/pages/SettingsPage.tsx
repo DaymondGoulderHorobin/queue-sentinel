@@ -1,7 +1,12 @@
+import { useState } from 'react';
+
 import type {
+  DiagnosticsResponse,
   IngestionStatusResponse,
   ScoringPreviewResponse,
 } from '../../shared/apiTypes';
+import { DEFAULT_PLAYTEST_FIXTURE_PACK_ID } from '../../shared/playtestFixturePacks';
+import type { AuditLogEntry } from '../../shared/types';
 
 const settingsSections = [
   {
@@ -23,30 +28,44 @@ const settingsSections = [
 ];
 
 interface SettingsPageProps {
+  auditEntries: AuditLogEntry[];
   dataStatus: string;
+  diagnostics: DiagnosticsResponse;
   errorMessage: string | null;
   incidentCount: number;
   ingestionStatus: IngestionStatusResponse;
   isMutating: boolean;
-  onPreviewIngestion: () => void;
+  onPreviewIngestion: (fixturePackId?: string) => void;
   onRefresh: () => void;
+  onRefreshDiagnostics: () => void;
   onRefreshIngestion: () => void;
   onRecomputeScoring: () => void;
   onResetDemo: () => void;
   onResetPlaytest: () => void;
   onSeedDemo: () => void;
-  onSeedPlaytest: () => void;
+  onSeedPlaytest: (fixturePackId?: string) => void;
   scoringPreview: ScoringPreviewResponse;
 }
 
+const formatTime = (timestamp: string | null | undefined) => {
+  return timestamp ? new Date(timestamp).toLocaleTimeString() : 'None';
+};
+
+const operationLabel = (entry: AuditLogEntry) => {
+  return entry.operation.replaceAll('.', ' ');
+};
+
 export const SettingsPage = ({
+  auditEntries,
   dataStatus,
+  diagnostics,
   errorMessage,
   incidentCount,
   ingestionStatus,
   isMutating,
   onPreviewIngestion,
   onRefresh,
+  onRefreshDiagnostics,
   onRefreshIngestion,
   onRecomputeScoring,
   onResetDemo,
@@ -55,21 +74,81 @@ export const SettingsPage = ({
   onSeedPlaytest,
   scoringPreview,
 }: SettingsPageProps) => {
+  const [selectedFixturePackId, setSelectedFixturePackId] = useState(
+    DEFAULT_PLAYTEST_FIXTURE_PACK_ID,
+  );
   const playtestReady =
     ingestionStatus.config.enabled &&
     ingestionStatus.config.mode === 'playtest-readonly';
+  const mutationsAllowed = diagnostics.authorization.mutationsAllowed;
+  const playtestMutationReady = playtestReady && mutationsAllowed;
   const allowedSubreddits =
     ingestionStatus.config.allowedSubredditNames.join(', ') || 'None';
   const lastRun = ingestionStatus.lastRun;
+  const fixturePacks = diagnostics.ingestion.availableFixturePacks;
+  const selectedFixturePack =
+    fixturePacks.find((pack) => pack.id === selectedFixturePackId) ??
+    fixturePacks[0];
+  const activeFixturePackId =
+    selectedFixturePack?.id ?? DEFAULT_PLAYTEST_FIXTURE_PACK_ID;
+  const recentAuditEntries = auditEntries.slice(0, 5);
 
   return (
     <section className="page-stack" aria-labelledby="settings-title">
       <div className="page-heading">
         <div>
-          <p className="eyebrow">Future configuration</p>
-          <h2 id="settings-title">Settings placeholders</h2>
+          <p className="eyebrow">Private playtest controls</p>
+          <h2 id="settings-title">Settings and diagnostics</h2>
         </div>
       </div>
+
+      <article className="demo-panel">
+        <div>
+          <p className="eyebrow">Authorization and diagnostics</p>
+          <h3>Runtime readiness</h3>
+          <p>
+            Sensitive Queue Sentinel mutations require moderator authorization
+            or the explicit local test bypass. Read-only status, preview, list,
+            and detail routes remain open.
+          </p>
+        </div>
+        <div className="demo-panel__meta">
+          <span>
+            Runtime <strong>{diagnostics.runtimeMode}</strong>
+          </span>
+          <span>
+            Incident store <strong>{diagnostics.stores.incidentStoreMode}</strong>
+          </span>
+          <span>
+            Signal store <strong>{diagnostics.stores.signalStoreMode}</strong>
+          </span>
+          <span>
+            Audit store <strong>{diagnostics.stores.auditStoreMode}</strong>
+          </span>
+          <span>
+            Authorization <strong>{diagnostics.authorization.mode}</strong>
+          </span>
+          <span>
+            Mutations{' '}
+            <strong>{mutationsAllowed ? 'authorized' : 'not authorized'}</strong>
+          </span>
+          <span>
+            Last scoring{' '}
+            <strong>{formatTime(diagnostics.scoring.lastRecomputeAt)}</strong>
+          </span>
+          <span>
+            Audit entries <strong>{diagnostics.audit.entryCount}</strong>
+          </span>
+        </div>
+        {diagnostics.fallbackWarning ? (
+          <div className="notice-panel">{diagnostics.fallbackWarning}</div>
+        ) : null}
+        <div className="demo-actions">
+          <button disabled={isMutating} onClick={onRefreshDiagnostics} type="button">
+            Refresh diagnostics
+          </button>
+        </div>
+      </article>
 
       <article className="demo-panel">
         <div>
@@ -93,10 +172,18 @@ export const SettingsPage = ({
           <button disabled={isMutating} onClick={onRefresh} type="button">
             Refresh
           </button>
-          <button disabled={isMutating} onClick={onSeedDemo} type="button">
+          <button
+            disabled={isMutating || !mutationsAllowed}
+            onClick={onSeedDemo}
+            type="button"
+          >
             Seed demo
           </button>
-          <button disabled={isMutating} onClick={onResetDemo} type="button">
+          <button
+            disabled={isMutating || !mutationsAllowed}
+            onClick={onResetDemo}
+            type="button"
+          >
             Reset demo
           </button>
         </div>
@@ -119,7 +206,7 @@ export const SettingsPage = ({
             Store <strong>{ingestionStatus.config.storeMode}</strong>
           </span>
           <span>
-            Allowed <strong>{allowedSubreddits}</strong>
+            Allowlist <strong>{allowedSubreddits}</strong>
           </span>
           <span>
             Signals <strong>{ingestionStatus.signalCount}</strong>
@@ -131,32 +218,44 @@ export const SettingsPage = ({
             Rejected <strong>{lastRun?.rejectedSignals ?? 0}</strong>
           </span>
           <span>
-            Last run{' '}
-            <strong>
-              {lastRun ? new Date(lastRun.finishedAt).toLocaleTimeString() : 'None'}
-            </strong>
+            Last run <strong>{formatTime(lastRun?.finishedAt)}</strong>
           </span>
         </div>
+        <label className="fixture-picker">
+          Fixture pack
+          <select
+            disabled={isMutating || fixturePacks.length === 0}
+            onChange={(event) => setSelectedFixturePackId(event.target.value)}
+            value={activeFixturePackId}
+          >
+            {fixturePacks.map((pack) => (
+              <option key={pack.id} value={pack.id}>
+                {pack.label} ({pack.itemCount})
+              </option>
+            ))}
+          </select>
+          <span>{selectedFixturePack?.description ?? 'No fixture pack loaded.'}</span>
+        </label>
         <div className="demo-actions">
           <button disabled={isMutating} onClick={onRefreshIngestion} type="button">
             Refresh status
           </button>
           <button
             disabled={isMutating || !playtestReady}
-            onClick={onPreviewIngestion}
+            onClick={() => onPreviewIngestion(activeFixturePackId)}
             type="button"
           >
             Preview ingestion
           </button>
           <button
-            disabled={isMutating || !playtestReady}
-            onClick={onSeedPlaytest}
+            disabled={isMutating || !playtestMutationReady}
+            onClick={() => onSeedPlaytest(activeFixturePackId)}
             type="button"
           >
             Seed playtest signals
           </button>
           <button
-            disabled={isMutating || !playtestReady}
+            disabled={isMutating || !playtestMutationReady}
             onClick={onResetPlaytest}
             type="button"
           >
@@ -187,9 +286,33 @@ export const SettingsPage = ({
           </span>
         </div>
         <div className="demo-actions">
-          <button disabled={isMutating} onClick={onRecomputeScoring} type="button">
+          <button
+            disabled={isMutating || !mutationsAllowed}
+            onClick={onRecomputeScoring}
+            type="button"
+          >
             {isMutating ? 'Recomputing...' : 'Recompute scored incidents'}
           </button>
+        </div>
+      </article>
+
+      <article className="demo-panel">
+        <div>
+          <p className="eyebrow">Audit log</p>
+          <h3>Recent safe operations</h3>
+        </div>
+        <div className="audit-list">
+          {recentAuditEntries.length > 0 ? (
+            recentAuditEntries.map((entry) => (
+              <div className="audit-row" key={entry.id}>
+                <strong>{operationLabel(entry)}</strong>
+                <span>{entry.outcome}</span>
+                <time>{formatTime(entry.timestamp)}</time>
+              </div>
+            ))
+          ) : (
+            <p>No audit entries recorded yet.</p>
+          )}
         </div>
       </article>
 

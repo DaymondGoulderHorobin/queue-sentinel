@@ -14,6 +14,67 @@ export type SignalSource = 'synthetic-demo' | 'playtest-readonly' | 'fallback';
 
 export type IngestionMode = 'disabled' | 'demo-only' | 'playtest-readonly';
 
+export type AuthorizationMode =
+  | 'moderator-required'
+  | 'local-bypass'
+  | 'unavailable';
+
+export type AuthorizationStatus =
+  | 'allowed'
+  | 'denied'
+  | 'local-bypass'
+  | 'unavailable';
+
+export interface SafeActorContext {
+  source: 'devvit-context' | 'local-bypass' | 'unavailable';
+  actorKey?: string;
+  subredditKey?: string;
+}
+
+export interface AuthorizationDiagnostics {
+  mode: AuthorizationMode;
+  status: AuthorizationStatus;
+  mutationsAllowed: boolean;
+  actor: SafeActorContext | null;
+  message: string;
+}
+
+export type AuditOperationType =
+  | 'demo.seed'
+  | 'demo.reset'
+  | 'playtest.seed'
+  | 'playtest.reset'
+  | 'scoring.recompute'
+  | 'incident.status.update'
+  | 'incident.metadata.update';
+
+export type AuditOutcome = 'allowed' | 'denied' | 'completed';
+
+export interface AuditLogEntry {
+  id: string;
+  operation: AuditOperationType;
+  outcome: AuditOutcome;
+  timestamp: string;
+  sourceRoute: string;
+  storeMode: SignalStoreMode;
+  actor: SafeActorContext | null;
+  counts: Record<string, number>;
+}
+
+export interface PlaytestFixturePack {
+  id: string;
+  label: string;
+  description: string;
+  items: readonly RedditReadonlyInput[];
+}
+
+export interface PlaytestFixturePackOption {
+  id: string;
+  label: string;
+  description: string;
+  itemCount: number;
+}
+
 export type IncidentSortKey =
   | 'priority'
   | 'queueAge'

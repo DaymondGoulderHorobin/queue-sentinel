@@ -1,8 +1,11 @@
 import type {
+  AuditLogEntry,
+  AuthorizationDiagnostics,
   ConfidenceLabel,
   IngestionRunSummary,
   IncidentStatus,
   IncidentTimelineEvent,
+  PlaytestFixturePackOption,
   QueueIncident,
   QueueSignal,
   ReadonlyIngestionConfig,
@@ -72,7 +75,7 @@ export interface SeedDemoResponse extends ApiOkResponse {
 
 export interface HealthResponse extends ApiOkResponse {
   service: 'queue-sentinel';
-  sprint: 'sprint-4';
+  sprint: 'sprint-5';
   storeMode: ApiSource;
   ingestionMode: ReadonlyIngestionConfig['mode'];
   scoringModelVersion: ScoringModelVersion;
@@ -104,11 +107,14 @@ export interface IngestionStatusResponse extends ApiOkResponse {
 
 export interface IngestionPreviewRequest {
   items?: RedditReadonlyInput[];
+  fixturePackId?: string;
 }
 
 export interface IngestionPreviewResponse extends ApiOkResponse {
   source: ApiSource;
   config: ReadonlyIngestionConfig;
+  fixturePackId?: string;
+  fixturePackLabel?: string;
   runSummary: IngestionRunSummary;
   signals: QueueSignal[];
   rejected: ReadonlyIngestionRejection[];
@@ -122,6 +128,44 @@ export interface IngestionResetResult {
   source: ApiSource;
   signalCount: number;
   resetCount: number;
+}
+
+export interface DiagnosticsResponse extends ApiOkResponse {
+  source: ApiSource;
+  runtimeMode: string;
+  stores: {
+    incidentStoreMode: ApiSource;
+    signalStoreMode: ApiSource;
+    auditStoreMode: ApiSource;
+  };
+  ingestion: {
+    mode: ReadonlyIngestionConfig['mode'];
+    enabled: boolean;
+    allowlistConfigured: boolean;
+    allowedSubredditCount: number;
+    signalCount: number;
+    lastRun: IngestionRunSummary | null;
+    availableFixturePacks: PlaytestFixturePackOption[];
+  };
+  incidents: {
+    count: number;
+  };
+  scoring: {
+    modelVersion: ScoringModelVersion;
+    lastRecomputeAt: string | null;
+  };
+  authorization: AuthorizationDiagnostics;
+  audit: {
+    entryCount: number;
+    recentLimit: number;
+  };
+  fallbackWarning: string | null;
+  timestamp: string;
+}
+
+export interface AuditRecentResponse extends ApiOkResponse {
+  source: ApiSource;
+  entries: AuditLogEntry[];
 }
 
 export interface IngestionResetResponse extends ApiOkResponse {
