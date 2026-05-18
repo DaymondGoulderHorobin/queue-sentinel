@@ -27,7 +27,7 @@ const enabledConfig = () =>
     'memory',
   );
 
-describe('Sprint 5 authorization routes', () => {
+describe('authorization routes', () => {
   it('keeps read-only routes open while denying production mutations without moderator context', async () => {
     const incidentStore = createIncidentMemoryStore();
     await incidentStore.seedDemoIncidents();

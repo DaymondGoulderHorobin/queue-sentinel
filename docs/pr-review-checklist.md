@@ -9,11 +9,11 @@ Use this checklist when asking ChatGPT to review Queue Sentinel pull requests.
 - Install output from `npm install`.
 - Build output from `npm run build`.
 - Full check output from `npm run check`.
-- Screenshot or concise description of Dashboard, Incidents, Case Card, Metrics, Settings, diagnostics, ingestion controls, audit log, and recompute scoring.
+- Screenshot or concise description of Dashboard, Judge Demo Mode, Incidents, Case Card, Metrics, Settings, diagnostics, ingestion controls, audit log, and recompute scoring.
 - Store mode notes: Redis, memory fallback, or browser-shell fallback.
 - Read-only ingestion mode, allowlist, and signal store notes.
 - Authorization mode and local/test bypass notes.
-- Branch/base note confirming Sprint 5 targets `main`.
+- Branch/base note confirming Sprint 6 targets `main`.
 - Any Devvit warnings or local playtest limitations.
 
 ## Acceptance Criteria
@@ -23,7 +23,7 @@ Use this checklist when asking ChatGPT to review Queue Sentinel pull requests.
 - Read-only ingestion is disabled by default and requires the explicit playtest flag plus allowlisted subreddit before persistence.
 - Sensitive mutation routes require moderator authorization or the explicit local/test bypass.
 - Denied mutation responses return a safe 403 message without private subreddit or raw user data.
-- Dashboard shows deterministic scoring active, model version, provenance, signals processed, clusters formed, average score, top scored incident, refresh, and recompute controls.
+- Dashboard shows Judge Demo Mode, deterministic scoring active, model version, provenance, signals processed, clusters formed, average score, top scored incident, refresh, and recompute controls.
 - Ten safe scored demo incidents are available after seed, reset, or recompute.
 - Incidents page supports search, filters, sorting, selection, selected preview, refresh, loading/error/empty states, score display, cluster summary, and internal status updates.
 - Case Card follows the selected incident and includes provenance, context, timeline, rationale draft, score breakdown, cluster summary, internal status, and disabled Reddit-facing actions.
@@ -34,14 +34,14 @@ Use this checklist when asking ChatGPT to review Queue Sentinel pull requests.
 - Recompute route persists only Queue Sentinel incident state and rejects external scoring inputs.
 - Audit logs record safe operation metadata only and cap recent reads at 25 entries.
 - Fixture packs cover repost waves, heated threads, self-promo, privacy-adjacent isolation, and formatting cleanup.
-- Clustering, scoring, normalizer, ingestion routes, authorization, audit, fixture packs, and signal stores are deterministic and covered by tests.
+- Demo flow, clustering, scoring, normalizer, ingestion routes, authorization, audit, fixture packs, docs, and signal stores are deterministic and covered by tests.
 - No real approve, remove, lock, ban, Reddit escalation, webhook, AI, external integration, notification, or automatic enforcement actions are active.
-- README documents install, run, build, test, Sprint 5 limitations, ingestion/auth flags, and main-base status.
-- PR remains focused on private playtest authorization, read-only ingestion, scoring integration, API, UI, docs, and tests.
+- README documents install, run, build, test, Sprint 6 limitations, ingestion/auth flags, demo runbook, and main-base status.
+- PR remains focused on demo hardening, private playtest runbook, read-only ingestion, scoring integration, UI copy, docs, and tests.
 
 ## Manual Review
 
-- Open Dashboard and confirm scoring metrics, top scored incident, model badge, refresh, and recompute action render.
+- Open Dashboard and confirm Judge Demo Mode, scoring metrics, top scored incident, model badge, refresh, and recompute action render.
 - Open Incidents and confirm score/cluster details appear on cards and preview while search/filter/sort still work.
 - Recompute scoring from Dashboard or Settings and confirm demo scoring still falls back when no playtest signals exist.
 - Open Case Card and confirm score breakdown, factor explanations, cluster summary, and disabled Reddit action buttons.
@@ -49,6 +49,7 @@ Use this checklist when asking ChatGPT to review Queue Sentinel pull requests.
 - Seed/reset from Settings only when authorized and confirm scored demo data returns.
 - With the playtest flags and authorization set, preview and seed selected playtest fixture packs from Settings, then confirm provenance changes to Playtest read-only.
 - Open Settings diagnostics and confirm authorization mode, store modes, signal count, incident count, last run, and audit entries render.
+- Follow `docs/playtest-runbook.md` and confirm `docs/demo-evidence.md` captures the submission assets.
 - Change an incident status and confirm it updates Queue Sentinel state only.
 - Check a 390px mobile viewport for readable text and non-overlapping controls.
 - Confirm browser console has no app errors.

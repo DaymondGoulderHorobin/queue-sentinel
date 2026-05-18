@@ -1,6 +1,6 @@
 # Private Playtest Checklist
 
-Use this checklist for Sprint 5 private subreddit playtests.
+Use this checklist for Sprint 6 private subreddit playtests and judge-demo rehearsal.
 
 ## Preflight
 
@@ -16,6 +16,7 @@ QUEUE_SENTINEL_TEST_SUBREDDIT=queue_sentinel_lab
 
 - For local-only mutation testing, set `QUEUE_SENTINEL_ALLOW_LOCAL_MUTATIONS=true`.
 - Confirm production-like runs without moderator context return 403 for mutation routes.
+- Keep `docs/playtest-runbook.md` open for the full operator sequence.
 
 ## Diagnostics
 
@@ -26,6 +27,7 @@ QUEUE_SENTINEL_TEST_SUBREDDIT=queue_sentinel_lab
 
 ## Fixture Packs
 
+- Open Dashboard and confirm Judge Demo Mode explains the current blocked, ready, complete, or fallback state.
 - Preview each fixture pack from Settings:
   - Default read-only mix.
   - Spam repost wave.
@@ -56,4 +58,5 @@ QUEUE_SENTINEL_TEST_SUBREDDIT=queue_sentinel_lab
 
 - Record `npm run check`.
 - Record `npm run build`.
-- Capture or describe Dashboard, Incidents, Case Card, Metrics, Settings diagnostics, fixture selection, audit log, ingestion preview/seed/reset, and scoring recompute behavior.
+- Use `docs/demo-evidence.md` for the screenshot and 60 second video shot list.
+- Capture or describe Dashboard, Judge Demo Mode, Incidents, Case Card, Metrics, Settings diagnostics, fixture selection, audit log, ingestion preview/seed/reset, and scoring recompute behavior.

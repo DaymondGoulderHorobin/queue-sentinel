@@ -95,7 +95,7 @@ const fallbackDiagnostics = (): DiagnosticsResponse => ({
     recentLimit: 25,
   },
   fallbackWarning:
-    'Server API unavailable in this preview. Mutation controls are disabled.',
+    'Browser fallback mode is active. Synthetic demo data is shown locally; Redis, authorization, audit writes, and playtest mutations are disabled.',
   timestamp: new Date().toISOString(),
 });
 
@@ -184,7 +184,7 @@ export const useIncidentWorkbench = () => {
       setDiagnostics(diagnosticsPayload);
       setAuditEntries(auditPayload.entries);
     } catch (error) {
-      console.info('Using local Sprint 5 diagnostics fallback.', error);
+      console.info('Using local Sprint 6 diagnostics fallback.', error);
       setDiagnostics(fallbackDiagnostics());
       setAuditEntries([]);
     }
@@ -206,7 +206,7 @@ export const useIncidentWorkbench = () => {
       setErrorMessage(null);
       await refreshDiagnosticsData();
     } catch (error) {
-      console.info('Using local Sprint 5 fallback incidents.', error);
+      console.info('Using local Sprint 6 fallback incidents.', error);
       const fallbackPreview = fallbackScoringPreview();
       preserveSelection(fallbackPreview.incidents);
       setScoringPreview(fallbackPreview);
@@ -215,7 +215,7 @@ export const useIncidentWorkbench = () => {
       setAuditEntries([]);
       setDataStatus('fallback');
       setErrorMessage(
-        'API unavailable in this preview. Showing safe local fallback data.',
+        'API unavailable. Browser fallback mode is showing synthetic demo data only; playtest mutations, authorization, and audit writes are disabled.',
       );
     } finally {
       setIsLoading(false);
@@ -242,11 +242,11 @@ export const useIncidentWorkbench = () => {
       setDataStatus(payload.result.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 5 seed fallback.', error);
+      console.info('Using local Sprint 6 seed fallback.', error);
 
       if (isAuthorizationError(error)) {
         await refreshDiagnosticsData();
-        setErrorMessage(error.message);
+        setErrorMessage(`${error.message} No Queue Sentinel data changed.`);
         return;
       }
 
@@ -257,7 +257,9 @@ export const useIncidentWorkbench = () => {
       setDiagnostics(fallbackDiagnostics());
       setAuditEntries([]);
       setDataStatus('fallback');
-      setErrorMessage('Demo seed used local fallback data in this preview.');
+      setErrorMessage(
+        'Demo seed could not reach the API, so browser fallback data remains synthetic and local.',
+      );
     } finally {
       setIsMutating(false);
     }
@@ -279,11 +281,11 @@ export const useIncidentWorkbench = () => {
       setDataStatus(payload.result.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 5 reset fallback.', error);
+      console.info('Using local Sprint 6 reset fallback.', error);
 
       if (isAuthorizationError(error)) {
         await refreshDiagnosticsData();
-        setErrorMessage(error.message);
+        setErrorMessage(`${error.message} No Queue Sentinel data changed.`);
         return;
       }
 
@@ -294,7 +296,9 @@ export const useIncidentWorkbench = () => {
       setDiagnostics(fallbackDiagnostics());
       setAuditEntries([]);
       setDataStatus('fallback');
-      setErrorMessage('Demo reset used local fallback data in this preview.');
+      setErrorMessage(
+        'Demo reset could not reach the API, so browser fallback data remains synthetic and local.',
+      );
     } finally {
       setIsMutating(false);
     }
@@ -311,11 +315,11 @@ export const useIncidentWorkbench = () => {
         setDataStatus(payload.source);
         setErrorMessage(null);
       } catch (error) {
-        console.info('Using local Sprint 5 status fallback.', error);
+        console.info('Using local Sprint 6 status fallback.', error);
 
         if (isAuthorizationError(error)) {
           await refreshDiagnosticsData();
-          setErrorMessage(error.message);
+          setErrorMessage(`${error.message} Internal status was not changed.`);
           return;
         }
 
@@ -335,7 +339,7 @@ export const useIncidentWorkbench = () => {
         setAuditEntries([]);
         setDataStatus('fallback');
         setErrorMessage(
-          'Internal status update used local fallback state in this preview.',
+          'Status update could not reach the API. Browser fallback changed local preview state only, not Reddit moderation state.',
         );
       } finally {
         setIsMutating(false);
@@ -356,11 +360,11 @@ export const useIncidentWorkbench = () => {
       setDataStatus(payload.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 5 recompute fallback.', error);
+      console.info('Using local Sprint 6 recompute fallback.', error);
 
       if (isAuthorizationError(error)) {
         await refreshDiagnosticsData();
-        setErrorMessage(error.message);
+        setErrorMessage(`${error.message} Scored incidents were not changed.`);
         return;
       }
 
@@ -372,7 +376,7 @@ export const useIncidentWorkbench = () => {
       setAuditEntries([]);
       setDataStatus('fallback');
       setErrorMessage(
-        'Scoring recompute used deterministic local fallback data in this preview.',
+        'Scoring recompute could not reach the API. Browser fallback is showing deterministic synthetic demo scoring only.',
       );
     } finally {
       setIsMutating(false);
@@ -385,11 +389,13 @@ export const useIncidentWorkbench = () => {
       await refreshDiagnosticsData();
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 5 ingestion status fallback.', error);
+      console.info('Using local Sprint 6 ingestion status fallback.', error);
       setIngestionStatus(fallbackIngestionStatus());
       setDiagnostics(fallbackDiagnostics());
       setAuditEntries([]);
-      setErrorMessage('Ingestion status used local fallback data in this preview.');
+      setErrorMessage(
+        'Ingestion status could not reach the API. Read-only playtest controls stay disabled in browser fallback mode.',
+      );
     }
   }, [refreshDiagnosticsData]);
 

@@ -25,7 +25,7 @@ describe('playtest fixture packs', () => {
     expect(fixturePack?.items.length).toBeGreaterThan(0);
   });
 
-  it('defines the Sprint 5 metadata-only playtest packs', () => {
+  it('defines the metadata-only playtest packs', () => {
     expect(PLAYTEST_FIXTURE_PACKS.map((pack) => pack.id)).toEqual([
       'default-readonly-mix',
       'spam-repost-wave',
