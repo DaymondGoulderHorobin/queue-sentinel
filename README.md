@@ -1,13 +1,13 @@
 # Queue Sentinel
 
-Queue Sentinel is a Reddit Devvit moderation workbench for noisy mod queues. Sprint 6 adds a judge-demo workflow, private playtest runbook, evidence template, and clearer fallback states on top of controlled read-only ingestion and Sprint 5 authorization.
+Queue Sentinel is a Reddit Devvit moderation workbench for noisy mod queues. Sprint 7 packages the private playtest and judge-demo build for marketplace, hackathon, and reviewer readiness.
 
-The eventual product will help moderators collapse duplicate reports into explainable incident cards, rank queue pressure, and keep all enforcement decisions human-in-the-loop. Sprint 6 accepts only allowlisted private-playtest metadata, protects mutation routes behind moderator authorization or an explicit local test bypass, and still does not perform real moderation actions.
+The product helps moderators collapse duplicate reports into explainable incident cards, rank queue pressure, and keep all enforcement decisions human-in-the-loop. Sprint 7 accepts only allowlisted private-playtest metadata, protects mutation routes behind moderator authorization or an explicit local test bypass, and still does not perform real moderation actions.
 
 ## Sprint Status
 
-- Sprint: `6 - Demo Hardening and Playtest Runbook`
-- Branch: `sprint-6-demo-hardening-runbook`
+- Sprint: `7 - Marketplace Readiness and Production Packaging`
+- Branch: `sprint-7-marketplace-readiness`
 - Base: `main`
 - Devvit pattern: Devvit Web with `src/client`, `src/server`, and `src/shared`
 - Data: safe synthetic queue signals plus opt-in allowlisted playtest metadata
@@ -78,6 +78,36 @@ QUEUE_SENTINEL_ALLOW_LOCAL_MUTATIONS=true
 
 Without the explicit ingestion flag and allowlisted subreddit, ingestion status remains disabled and seed/reset endpoints reject playtest writes. Without moderator authorization or the explicit local mutation bypass, sensitive mutation routes return 403.
 
+## Marketplace Readiness
+
+Sprint 7 adds the submission package a reviewer needs to understand, test, and assess Queue Sentinel:
+
+- [Private playtest runbook](docs/playtest-runbook.md)
+- [Demo evidence template](docs/demo-evidence.md)
+- [Privacy and safety document](docs/privacy-and-safety.md)
+- [Submission copy](docs/submission-copy.md)
+- [Demo video script](docs/demo-video-script.md)
+- [Release checklist](docs/release-checklist.md)
+- [Devvit publish readiness checklist](docs/devvit-publish-readiness.md)
+
+## Feature Summary
+
+- Dashboard Judge Demo Mode for a one-minute product story.
+- Incidents list for clustered, scored, searchable queue review.
+- Case Card with provenance, score factors, cluster summary, rationale copy, and disabled action boundary.
+- Metrics for signals, clusters, scoring impact, and priority distribution.
+- Settings diagnostics for runtime, store, authorization, ingestion, audit, fixture, readiness, and reset state.
+- Read-only private playtest fixture flow: preview, seed when authorized, recompute, audit, and reset.
+
+## Safe By Default
+
+- Read-only ingestion is disabled unless explicit playtest flags and an allowlisted subreddit are configured.
+- Mutation routes require moderator authorization or an explicit local/test bypass.
+- Scores are triage context only and do not make allegations, decisions, or enforcement recommendations.
+- Audit entries store safe Queue Sentinel operation metadata, not full content or raw usernames.
+- Browser fallback mode uses synthetic demo data and does not imply live Reddit data, Redis, authorization, or audit writes.
+- No approve, remove, lock, ban, mute, flair enforcement, Reddit escalation, webhook, AI decisioning, notification, or automatic enforcement path is active.
+
 ## Implemented
 
 - Devvit-compatible `devvit.json` and Vite build setup.
@@ -92,14 +122,16 @@ Without the explicit ingestion flag and allowlisted subreddit, ingestion status 
 - Diagnostics API and Settings diagnostics panel for runtime, stores, ingestion, scoring, authorization, fallback, and audit state.
 - Dashboard Judge Demo Mode with blocked, ready, complete, and fallback step states.
 - Private playtest runbook and demo evidence template for screenshot/video collection.
+- Marketplace submission copy, demo video script, release checklist, privacy and safety document, and Devvit publish readiness checklist.
+- Settings submission readiness summary for demo, private playtest, production-safe default, browser fallback, and authorization states.
 - Clearer fallback, disabled ingestion, unauthorized mutation, no-signal, no-incident, and memory-store explanations.
 - Hono server app with typed incident, demo, health, ingestion, scoring preview, and recompute routes.
 - `incidentStore` abstraction with Redis adapter and memory fallback for persisted scored demo incidents.
 - Separate `QueueSignalStore` abstraction with Redis and memory adapters for accepted playtest signals.
 - API-first client loading with refresh, seed/reset, recompute, loading/error/empty states, and local deterministic fallback.
 - Dashboard, Incidents, Case Card, Metrics, and Settings surfaces for score explanations, cluster summaries, ingestion state, and provenance labels.
-- Documentation for architecture, sprint notes, playtest checklist, runbook, demo evidence, PR review, and safety boundaries.
-- Store, route, authorization, audit, demo-flow, docs, clustering, scoring, smoke, and workbench helper tests.
+- Documentation for architecture, sprint notes, playtest checklist, runbook, demo evidence, privacy and safety, submission copy, demo script, release checklist, Devvit publish readiness, PR review, and safety boundaries.
+- Store, route, authorization, audit, demo-flow, docs, marketplace readiness, production defaults, clustering, scoring, smoke, and workbench helper tests.
 - GitHub Actions CI for install, type-check, lint, test, and build.
 
 ## Not Implemented Yet
@@ -110,6 +142,7 @@ Without the explicit ingestion flag and allowlisted subreddit, ingestion status 
 - Reddit event triggers or webhooks.
 - External Slack, Discord, webhook, email, or analytics integrations.
 - AI-generated moderation decisions.
+- Current Reddit marketplace policy verification beyond what is visible locally in project config and Devvit CLI help.
 
 ## Project Layout
 
@@ -118,8 +151,8 @@ src/
   client/   React app shell, API clients, hooks, components, pages, and CSS
   server/   Hono app, API routes, Devvit menu handler, store adapters, and service wrappers
   shared/   Shared constants, demo data, demo/playtest signals, API types, scoring engine, and contracts
-tests/      Smoke, store, route, ingestion, auth, audit, clustering, scoring, and workbench helper tests
-docs/       Architecture, sprint notes, playtest checklist, runbook, evidence, and PR review checklist
+tests/      Smoke, store, route, ingestion, auth, audit, docs, readiness, clustering, scoring, and workbench helper tests
+docs/       Architecture, sprint notes, playtest checklist, runbook, evidence, privacy, submission, release, Devvit publish, and PR review checklist
 ```
 
 ## Pull Request Evidence
@@ -129,5 +162,5 @@ For ChatGPT review, include:
 - PR title and summary.
 - Changed file tree.
 - Output from `npm install`, `npm run build`, `npm run check`, and CI.
-- Screenshot or short description of Dashboard, Judge Demo Mode, Incidents, Case Card, Metrics, Settings, diagnostics, ingestion controls, audit log, and recompute behavior.
-- Notes on store mode, read-only ingestion mode, authorization mode, browser-shell fallback behavior, main-base status, and any Devvit playtest limitations.
+- Screenshot or short description of Dashboard, Judge Demo Mode, Incidents, Case Card, Metrics, Settings readiness summary, diagnostics, ingestion controls, audit log, and recompute behavior.
+- Notes on store mode, read-only ingestion mode, authorization mode, browser-shell fallback behavior, submission docs, main-base status, and any Devvit playtest or publish-readiness limitations.

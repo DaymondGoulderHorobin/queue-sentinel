@@ -5,7 +5,7 @@ export const APP_NAME = 'Queue Sentinel';
 export const APP_TAGLINE =
   'A moderation workbench for turning noisy queues into explainable incident cards.';
 
-export const SPRINT_LABEL = 'Sprint 6 Build';
+export const SPRINT_LABEL = 'Sprint 7 Build';
 
 export const APP_TABS: AppTab[] = [
   { id: 'dashboard', label: 'Dashboard' },

@@ -97,7 +97,7 @@ export const createScoringRoute = (
 
       if (Object.keys(body).length > 0) {
         return context.json(
-          errorResponse('External scoring inputs are not accepted in Sprint 6.'),
+          errorResponse('External scoring inputs are not accepted in Sprint 7.'),
           400,
         );
       }

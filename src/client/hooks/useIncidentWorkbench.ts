@@ -184,7 +184,7 @@ export const useIncidentWorkbench = () => {
       setDiagnostics(diagnosticsPayload);
       setAuditEntries(auditPayload.entries);
     } catch (error) {
-      console.info('Using local Sprint 6 diagnostics fallback.', error);
+      console.info('Using local Sprint 7 diagnostics fallback.', error);
       setDiagnostics(fallbackDiagnostics());
       setAuditEntries([]);
     }
@@ -206,7 +206,7 @@ export const useIncidentWorkbench = () => {
       setErrorMessage(null);
       await refreshDiagnosticsData();
     } catch (error) {
-      console.info('Using local Sprint 6 fallback incidents.', error);
+      console.info('Using local Sprint 7 fallback incidents.', error);
       const fallbackPreview = fallbackScoringPreview();
       preserveSelection(fallbackPreview.incidents);
       setScoringPreview(fallbackPreview);
@@ -242,7 +242,7 @@ export const useIncidentWorkbench = () => {
       setDataStatus(payload.result.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 6 seed fallback.', error);
+      console.info('Using local Sprint 7 seed fallback.', error);
 
       if (isAuthorizationError(error)) {
         await refreshDiagnosticsData();
@@ -281,7 +281,7 @@ export const useIncidentWorkbench = () => {
       setDataStatus(payload.result.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 6 reset fallback.', error);
+      console.info('Using local Sprint 7 reset fallback.', error);
 
       if (isAuthorizationError(error)) {
         await refreshDiagnosticsData();
@@ -315,7 +315,7 @@ export const useIncidentWorkbench = () => {
         setDataStatus(payload.source);
         setErrorMessage(null);
       } catch (error) {
-        console.info('Using local Sprint 6 status fallback.', error);
+        console.info('Using local Sprint 7 status fallback.', error);
 
         if (isAuthorizationError(error)) {
           await refreshDiagnosticsData();
@@ -360,7 +360,7 @@ export const useIncidentWorkbench = () => {
       setDataStatus(payload.source);
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 6 recompute fallback.', error);
+      console.info('Using local Sprint 7 recompute fallback.', error);
 
       if (isAuthorizationError(error)) {
         await refreshDiagnosticsData();
@@ -389,7 +389,7 @@ export const useIncidentWorkbench = () => {
       await refreshDiagnosticsData();
       setErrorMessage(null);
     } catch (error) {
-      console.info('Using local Sprint 6 ingestion status fallback.', error);
+      console.info('Using local Sprint 7 ingestion status fallback.', error);
       setIngestionStatus(fallbackIngestionStatus());
       setDiagnostics(fallbackDiagnostics());
       setAuditEntries([]);
