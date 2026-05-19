@@ -1,13 +1,13 @@
 # Queue Sentinel
 
-Queue Sentinel is a Reddit Devvit moderation workbench for noisy mod queues. Sprint 7.1 hardens the marketplace-ready build after code review without changing the product story or adding moderation powers.
+Queue Sentinel is a Reddit Devvit moderation workbench for noisy mod queues. Sprint 7.2 applies final polish and defensive hardening to the marketplace-ready build without changing the product story or adding moderation powers.
 
-The product helps moderators collapse duplicate reports into explainable incident cards, rank queue pressure, and keep all enforcement decisions human-in-the-loop. Sprint 7.1 accepts only allowlisted private-playtest metadata, protects mutation routes behind moderator authorization or an explicit local test bypass, and still does not perform real moderation actions.
+The product helps moderators collapse duplicate reports into explainable incident cards, rank queue pressure, and keep all enforcement decisions human-in-the-loop. Sprint 7.2 accepts only allowlisted private-playtest metadata, protects mutation routes behind moderator authorization or an explicit local test bypass, and still does not perform real moderation actions.
 
 ## Sprint Status
 
-- Sprint: `7.1 - Code Review Hardening`
-- Branch: `sprint-7-1-code-review-hardening`
+- Sprint: `7.2 - Final Polish and Defensive Hardening`
+- Branch: `sprint-7-2-final-polish-hardening`
 - Base: `main`
 - Devvit pattern: Devvit Web with `src/client`, `src/server`, and `src/shared`
 - Data: safe synthetic queue signals plus opt-in allowlisted playtest metadata
@@ -80,7 +80,7 @@ Without the explicit ingestion flag and allowlisted subreddit, ingestion status 
 
 ## Marketplace Readiness
 
-Sprint 7.1 keeps the Sprint 7 submission package ready for reviewers:
+Sprint 7.2 keeps the Sprint 7 submission package ready for reviewers:
 
 - [Private playtest runbook](docs/playtest-runbook.md)
 - [Demo evidence template](docs/demo-evidence.md)
@@ -125,6 +125,7 @@ Sprint 7.1 keeps the Sprint 7 submission package ready for reviewers:
 - Marketplace submission copy, demo video script, release checklist, privacy and safety document, and Devvit publish readiness checklist.
 - Settings submission readiness summary for demo, private playtest, production-safe default, browser fallback, and authorization states.
 - Sprint 7.1 hardening for Redis batch writes, safe scoring JSON errors, collision-resistant audit IDs, always-hashed author keys, and stale playtest preview behavior.
+- Sprint 7.2 polish for the complete Case Card status set, 100 item ingestion request cap, shared provenance labels, shared client JSON fetch handling, and explicit Redis batch-write return semantics.
 - Clearer fallback, disabled ingestion, unauthorized mutation, no-signal, no-incident, and memory-store explanations.
 - Hono server app with typed incident, demo, health, ingestion, scoring preview, and recompute routes.
 - `incidentStore` abstraction with Redis adapter and memory fallback for persisted scored demo incidents.

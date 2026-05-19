@@ -26,6 +26,8 @@ const errorResponse = (message: string): ApiErrorResponse => ({
 
 class BadJsonRequestError extends Error {}
 
+export const MAX_INGESTION_ITEMS = 100;
+
 const readOptionalJson = async (request: Request) => {
   const text = await request.text();
 
@@ -79,6 +81,12 @@ const itemsFromBody = (
 
   if (!Array.isArray(maybeItems)) {
     return { error: 'Preview items must be an array of read-only metadata.' };
+  }
+
+  if (maybeItems.length > MAX_INGESTION_ITEMS) {
+    return {
+      error: `Read-only ingestion accepts at most ${MAX_INGESTION_ITEMS} items per request.`,
+    };
   }
 
   return { items: maybeItems };

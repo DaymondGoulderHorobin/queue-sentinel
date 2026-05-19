@@ -4,6 +4,7 @@ import { DEMO_INCIDENTS } from '../src/shared/demoData';
 import {
   DEFAULT_FILTERS,
   filterIncidents,
+  getIncidentProvenanceLabel,
   getPriorityDistribution,
   getRecommendedReviewFocus,
   getRuleAreas,
@@ -76,5 +77,29 @@ describe('workbench helpers', () => {
 
     expect(ruleAreas).toContain('Spam and repost policy');
     expect(ruleAreas).toEqual([...ruleAreas].sort((a, b) => a.localeCompare(b)));
+  });
+
+  it('labels incident provenance consistently across workbench surfaces', () => {
+    const incident = DEMO_INCIDENTS[0];
+
+    expect(getIncidentProvenanceLabel(incident)).toBe('Synthetic demo');
+    expect(
+      getIncidentProvenanceLabel({
+        ...incident,
+        ingestionProvenance: {
+          source: 'playtest-readonly',
+          signalIds: ['signal-1'],
+        },
+      }),
+    ).toBe('Playtest read-only');
+    expect(
+      getIncidentProvenanceLabel({
+        ...incident,
+        ingestionProvenance: {
+          source: 'fallback',
+          signalIds: [],
+        },
+      }),
+    ).toBe('Fallback');
   });
 });

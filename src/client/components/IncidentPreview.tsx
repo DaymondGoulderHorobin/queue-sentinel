@@ -1,5 +1,6 @@
 import { SignalPill } from './SignalPill';
 import { StatusBadge } from './StatusBadge';
+import { getIncidentProvenanceLabel } from '../../shared/workbench';
 import type { IncidentStatus, QueueIncident } from '../../shared/types';
 
 interface IncidentPreviewProps {
@@ -8,20 +9,6 @@ interface IncidentPreviewProps {
   onOpenCaseCard: (incidentId: string) => void;
   onUpdateStatus: (incidentId: string, status: IncidentStatus) => void;
 }
-
-const provenanceLabel = (incident: QueueIncident) => {
-  const source = incident.ingestionProvenance?.source;
-
-  if (source === 'playtest-readonly') {
-    return 'Playtest read-only';
-  }
-
-  if (source === 'fallback') {
-    return 'Fallback';
-  }
-
-  return 'Synthetic demo';
-};
 
 export const IncidentPreview = ({
   incident,
@@ -74,7 +61,7 @@ export const IncidentPreview = ({
       <div className="preview-section">
         <p className="eyebrow">Signals</p>
         <div className="signal-row">
-          <SignalPill>{provenanceLabel(incident)}</SignalPill>
+          <SignalPill>{getIncidentProvenanceLabel(incident)}</SignalPill>
           {incident.whySurfaced.slice(0, 3).map((reason) => (
             <SignalPill key={reason}>{reason}</SignalPill>
           ))}

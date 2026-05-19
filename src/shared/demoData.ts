@@ -35,7 +35,7 @@ export const PRIMARY_DEMO_INCIDENT: QueueIncident = {
     {
       id: 'inc-demo-001-t2',
       label: 'Reports accumulated',
-      detail: 'Report volume crossed the Sprint 7.1 critical demo threshold.',
+      detail: 'Report volume crossed the Sprint 7.2 critical demo threshold.',
       occurredAt: '2026-05-14T08:48:00.000Z',
     },
     {
@@ -215,7 +215,7 @@ export const DEMO_INCIDENTS: QueueIncident[] = [
       'Demo safety-adjacent summary. No real personal information is present.',
     relatedItemCount: 2,
     rationaleDraft:
-      'Review carefully and avoid automated assumptions. Sprint 7.1 does not escalate or notify externally.',
+      'Review carefully and avoid automated assumptions. Sprint 7.2 does not escalate or notify externally.',
     createdAt: '2026-05-14T08:26:00.000Z',
     updatedAt: '2026-05-14T09:24:00.000Z',
     tags: ['privacy-review', 'safety-adjacent', 'careful-review'],
@@ -280,7 +280,7 @@ export const DEMO_INCIDENTS: QueueIncident[] = [
       'No moderation action was performed by Queue Sentinel',
     ],
     userContextSummary:
-      'Resolved demo incident retained for Sprint 7.1 metric cards.',
+      'Resolved demo incident retained for Sprint 7.2 metric cards.',
     relatedItemCount: 5,
     rationaleDraft:
       'Resolved in demo state only. This proves metrics can include completed review sessions later.',
@@ -351,7 +351,7 @@ export const DEMO_INCIDENTS: QueueIncident[] = [
       'Demo profile-level summary based on repeated queue touches, with no real identity data.',
     relatedItemCount: 5,
     rationaleDraft:
-      'Use the case card as a context aid only. Sprint 7.1 must not recommend account action.',
+      'Use the case card as a context aid only. Sprint 7.2 must not recommend account action.',
     createdAt: '2026-05-14T09:04:00.000Z',
     updatedAt: '2026-05-14T09:26:00.000Z',
     tags: ['profile-context', 'pattern-review'],

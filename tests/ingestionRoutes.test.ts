@@ -42,6 +42,12 @@ const createTestApp = (enabled = true) => {
   return { app, signalStore };
 };
 
+const oversizedIngestionItems = () =>
+  Array.from({ length: 101 }, (_, index) => ({
+    ...PLAYTEST_READONLY_INPUTS[0],
+    itemId: `oversized-${index}`,
+  }));
+
 describe('read-only ingestion API routes', () => {
   it('reports disabled status by default', async () => {
     const { app } = createTestApp(false);
@@ -134,6 +140,32 @@ describe('read-only ingestion API routes', () => {
     expect(payload.rejected).toHaveLength(2);
     expect(payloadText).not.toContain('redditAction');
     expect(payloadText).not.toContain('remove');
+  });
+
+  it('rejects oversized preview item arrays before normalization', async () => {
+    const { app } = createTestApp();
+    const response = await app.request('/api/ingestion/preview', {
+      body: JSON.stringify({ items: oversizedIngestionItems() }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
+    const payload = await readJson<ApiErrorResponse>(response);
+
+    expect(response.status).toBe(400);
+    expect(payload.message).toContain('at most 100');
+  });
+
+  it('rejects oversized playtest seed item arrays before normalization', async () => {
+    const { app } = createTestApp();
+    const response = await app.request('/api/ingestion/playtest-seed', {
+      body: JSON.stringify({ items: oversizedIngestionItems() }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
+    const payload = await readJson<ApiErrorResponse>(response);
+
+    expect(response.status).toBe(400);
+    expect(payload.message).toContain('at most 100');
   });
 
   it('returns a bad request for malformed preview bodies', async () => {

@@ -1,6 +1,6 @@
 # Private Playtest Checklist
 
-Use this checklist for Sprint 7.1 private subreddit playtests, judge-demo rehearsal, and submission readiness review.
+Use this checklist for Sprint 7.2 private subreddit playtests, judge-demo rehearsal, and submission readiness review.
 
 ## Preflight
 
