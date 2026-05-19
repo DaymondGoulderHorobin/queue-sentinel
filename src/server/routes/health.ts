@@ -15,7 +15,7 @@ export const createHealthRoute = (
     return context.json<HealthResponse>({
       status: 'ok',
       service: 'queue-sentinel',
-      sprint: 'sprint-7-1',
+      sprint: 'sprint-7-2',
       storeMode: store.mode,
       ingestionMode: ingestionConfig.mode,
       scoringModelVersion: SCORING_MODEL_VERSION,

@@ -2,6 +2,7 @@ import { MetricCard } from '../components/MetricCard';
 import { SignalPill } from '../components/SignalPill';
 import { StatusBadge } from '../components/StatusBadge';
 import { PRIMARY_DEMO_INCIDENT } from '../../shared/demoData';
+import { getIncidentProvenanceLabel } from '../../shared/workbench';
 import type { IncidentStatus, QueueIncident } from '../../shared/types';
 
 interface CaseCardPageProps {
@@ -9,20 +10,6 @@ interface CaseCardPageProps {
   isMutating: boolean;
   onUpdateStatus: (incidentId: string, status: IncidentStatus) => void;
 }
-
-const provenanceLabel = (incident: QueueIncident) => {
-  const source = incident.ingestionProvenance?.source;
-
-  if (source === 'playtest-readonly') {
-    return 'Playtest read-only';
-  }
-
-  if (source === 'fallback') {
-    return 'Fallback';
-  }
-
-  return 'Synthetic demo';
-};
 
 export const CaseCardPage = ({
   incident,
@@ -33,7 +20,7 @@ export const CaseCardPage = ({
   const timeline = selectedIncident.timeline ?? [];
   const scoreFactors = selectedIncident.priorityScore?.factors ?? [];
   const provenance = selectedIncident.ingestionProvenance;
-  const provenanceText = provenanceLabel(selectedIncident);
+  const provenanceText = getIncidentProvenanceLabel(selectedIncident);
 
   return (
     <section className="page-stack" aria-labelledby="case-card-title">
@@ -109,7 +96,7 @@ export const CaseCardPage = ({
             <p>{selectedIncident.rationaleDraft}</p>
             <small>
               Review aid only. Queue Sentinel is not making an enforcement
-              decision in Sprint 7.1.
+              decision in Sprint 7.2.
             </small>
           </div>
         </div>
@@ -197,7 +184,7 @@ export const CaseCardPage = ({
             <p className="eyebrow">Safety boundary</p>
             <strong>Moderation actions are intentionally disabled.</strong>
             <p>
-              Sprint 7.1 can persist allowlisted read-only metadata only. No
+              Sprint 7.2 can persist allowlisted read-only metadata only. No
               approve, remove, lock, ban, Reddit escalation, webhook, AI, or
               trigger path is active.
             </p>
@@ -216,6 +203,7 @@ export const CaseCardPage = ({
                 <option value="open">Open</option>
                 <option value="reviewing">Reviewing</option>
                 <option value="resolved">Resolved</option>
+                <option value="escalated">Escalated</option>
               </select>
             </label>
           </div>

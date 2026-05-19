@@ -46,6 +46,20 @@ export const getIncidentSearchText = (incident: QueueIncident) => {
     .toLowerCase();
 };
 
+export const getIncidentProvenanceLabel = (incident: QueueIncident) => {
+  const source = incident.ingestionProvenance?.source;
+
+  if (source === 'playtest-readonly') {
+    return 'Playtest read-only';
+  }
+
+  if (source === 'fallback') {
+    return 'Fallback';
+  }
+
+  return 'Synthetic demo';
+};
+
 export const filterIncidents = (
   incidents: readonly QueueIncident[],
   filters: IncidentFilters,

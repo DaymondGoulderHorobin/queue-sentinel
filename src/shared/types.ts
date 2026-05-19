@@ -9,7 +9,7 @@ export type SignalStrength = 'low' | 'medium' | 'high';
 export type ConfidenceLabel = 'low' | 'medium' | 'high';
 
 // Intentionally frozen for the hackathon build so score explanations remain
-// comparable across Sprint 3 through Sprint 7.1 hardening changes.
+// comparable across Sprint 3 through Sprint 7.2 hardening changes.
 export type ScoringModelVersion = 'sprint-3-deterministic-v1';
 
 export type SignalSource = 'synthetic-demo' | 'playtest-readonly' | 'fallback';

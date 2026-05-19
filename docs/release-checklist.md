@@ -70,6 +70,7 @@ npm run dev:shell
 - `docs/playtest-runbook.md` still matches the current private playtest flow.
 - `docs/pr-review-checklist.md` mentions the current sprint, branch/base, safety, CI, and browser review evidence.
 - `docs/sprint-7-1-hardening-notes.md` summarizes Redis batching, scoring JSON handling, audit ID, author-key hashing, and stale preview behavior.
+- `docs/sprint-7-2-notes.md` summarizes the final polish fixes, 100 item ingestion cap, shared helpers, and unchanged safety boundaries.
 - Known limitations are visible and do not overstate production ingestion or enforcement.
 
 ## Do Not Submit Unless

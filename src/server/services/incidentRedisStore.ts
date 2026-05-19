@@ -47,6 +47,8 @@ const writeIncident = async (redis: RedisLike, incident: QueueIncident) => {
   return incident;
 };
 
+// Returns the accepted incident input after successful batch writes; callers do
+// not need a fresh Redis read just to continue with the same values.
 const writeIncidents = async (
   redis: RedisLike,
   incidents: readonly QueueIncident[],

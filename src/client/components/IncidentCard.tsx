@@ -1,5 +1,6 @@
 import { SignalPill } from './SignalPill';
 import { StatusBadge } from './StatusBadge';
+import { getIncidentProvenanceLabel } from '../../shared/workbench';
 import type { QueueIncident } from '../../shared/types';
 
 interface IncidentCardProps {
@@ -15,20 +16,6 @@ const signalTone = (signalStrength: QueueIncident['signalStrength']) => {
   }
 
   return signalStrength ?? 'neutral';
-};
-
-const provenanceLabel = (incident: QueueIncident) => {
-  const source = incident.ingestionProvenance?.source;
-
-  if (source === 'playtest-readonly') {
-    return 'Playtest read-only';
-  }
-
-  if (source === 'fallback') {
-    return 'Fallback';
-  }
-
-  return 'Synthetic demo';
 };
 
 export const IncidentCard = ({
@@ -80,7 +67,7 @@ export const IncidentCard = ({
         <SignalPill tone={signalTone(incident.signalStrength)}>
           {incident.signalStrength ?? 'tracked'} signal
         </SignalPill>
-        <SignalPill>{provenanceLabel(incident)}</SignalPill>
+        <SignalPill>{getIncidentProvenanceLabel(incident)}</SignalPill>
         <SignalPill>confidence {incident.confidenceLabel ?? 'medium'}</SignalPill>
         {topFactor ? (
           <SignalPill>
